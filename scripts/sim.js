@@ -28,7 +28,7 @@ let seed = 12345;
 Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 
 (0, eval)(src + `
-;globalThis.T={startGame,update,render,finish,
+;globalThis.T={startGame,update,render,finish,showResult,
   get G(){return G},get state(){return state},get SAVE(){return SAVE},
   setMouse:(x,y)=>{mouse.x=x;mouse.y=y},hold:v=>{down=v},
   C:{L,MM,TOL,PERFECT,KISS}};`);
@@ -71,6 +71,23 @@ for (const [name, policy] of Object.entries(policies)) {
   }
 }
 ok((counts.kiss || 0) > 0 && (counts.snap || 0) > 0, '뽀뽀와 끊기 결과가 모두 나와야 한다: ' + JSON.stringify(counts));
+
+// 두 판 성공 뒤 실패해도 확보 점수 보존. 중간 저장/중복 지급 방지.
+T.startGame();
+const before = T.SAVE.coins;
+T.G.sp = 100 / T.C.MM; T.G.R = 20 / T.C.MM;
+T.finish('snap');
+ok(T.G.score === 115 && T.SAVE.coins === before, '20mm 경계 성공: 보너스 확보, 지급 보류');
+T.showResult();
+ok(T.state === 'play', '성공 뒤 다음 판으로 진행');
+T.G.sp = 80 / T.C.MM; T.G.R = 19 / T.C.MM;
+T.finish('snap'); T.showResult();
+T.finish('aisnap');
+ok(T.G.score === 207 && T.SAVE.coins === before + 207, '두 판 누적 보존 및 코인 한 번 지급');
+T.finish('aisnap');
+ok(T.SAVE.coins === before + 207, '종료 중복 호출 시 코인 중복 지급 방지');
+T.startGame(); T.G.sp = 100 / T.C.MM; T.G.R = 20.01 / T.C.MM;
+T.finish('snap'); ok(!T.G.end.advance, '20mm 초과면 연속 진행 안 함');
 
 console.log('종료 분포: ' + JSON.stringify(counts));
 console.log(failed ? failed + '개 실패' : '모두 통과');
