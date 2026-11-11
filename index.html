@@ -57,6 +57,18 @@ button.ghost{background:var(--paper)}
 #snap{display:none;width:var(--w);background:var(--blue);color:#fff;font-size:20px;padding:16px;box-shadow:5px 5px 0 var(--ink)}
 #snap.show{display:block}
 .hint{word-break:keep-all;text-wrap:balance;max-width:var(--w);color:var(--ink);font-size:12.5px;text-align:center;font-weight:600}
+.shop{grid-template-columns:1fr;max-width:760px;gap:10px}
+.shophead{display:flex;align-items:center;gap:12px}
+.shophead h2{margin:0;flex:1}
+.shophead .rank{margin:0}
+#shopBody h3{margin:14px 0 8px;font-size:14px;font-weight:800;background:var(--ink);color:var(--yellow);display:inline-block;padding:3px 10px}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+.item{border:3px solid var(--ink);padding:8px;background:#fff;display:grid;gap:6px;text-align:center}
+.item.eq{background:var(--yellow)}
+.item canvas.pv{width:100%;height:auto;border:2px solid var(--ink);display:block}
+.item .nm{font-weight:800;font-size:13px;word-break:keep-all}
+.item button{padding:6px 8px;font-size:13px;box-shadow:3px 3px 0 var(--ink)}
+.item button.on{opacity:.65;cursor:default;box-shadow:none}
 @media (max-width:700px){.card{grid-template-columns:1fr}.big{font-size:42px}header h1{font-size:21px}}
 </style>
 </head>
@@ -66,7 +78,7 @@ button.ghost{background:var(--paper)}
 <div id="stage">
   <canvas id="c"></canvas>
   <div id="overlay">
-    <div class="card">
+    <div class="card" id="mainCard">
       <div>
         <div id="menuTop">
           <h2>빼빼로 데스매치</h2>
@@ -94,6 +106,11 @@ button.ghost{background:var(--paper)}
         </ul>
       </div>
       <div class="lb"><h3>🏆 리더보드 (이 기기)</h3><ol id="lb"></ol></div>
+    </div>
+    <div class="card shop" id="shopCard" style="display:none">
+      <div class="shophead"><h2>상점</h2><span id="coins" class="rank"></span><button id="shopBack" class="ghost">뒤로</button></div>
+      <p id="shopMsg">한 판에 먹은 mm만큼 코인이 쌓입니다. 뽀뽀하면 코인도 0입니다.</p>
+      <div id="shopBody"></div>
     </div>
   </div>
 </div>
@@ -160,7 +177,7 @@ const canvas=$('#c'); let ctx=canvas.getContext('2d');
 function fit(){
   const w=canvas.getBoundingClientRect().width||W, k=Math.max(1,Math.min(3,w/W*(window.devicePixelRatio||1)));
   canvas.width=Math.round(W*k); canvas.height=Math.round(H*k); ctx.setTransform(k,0,0,k,0,0);
-  const card=document.querySelector('.card'); if(card)card.style.zoom=Math.max(1,Math.min(1.9,w/W));
+  document.querySelectorAll('.card').forEach(c=>{c.style.zoom=Math.max(1,Math.min(1.9,w/W))});
 }
 fit(); window.addEventListener('resize',fit);
 
@@ -293,6 +310,51 @@ function toMenu(){
   $('#menuTop').style.display='block'; $('#resTop').style.display='none'; $('#menuBtn').style.display='none';
   $('#go').textContent='시작'; renderLB(0); updateCoins(); $('#overlay').classList.add('show');
 }
+function previewCanvas(kind,id){
+  const c=document.createElement('canvas'); c.width=280; c.height=160; c.className='pv';
+  const prev=ctx; ctx=c.getContext('2d'); ctx.setTransform(2,0,0,2,0,0);
+  ctx.fillStyle=PAPER; ctx.fillRect(0,0,140,80);
+  if(kind==='pk'){ctx.save();ctx.translate(8,40);paintStickPart(0,124,92,0,skinOf(id));ctx.restore()}
+  else{
+    ctx.save();ctx.translate(92,46);ctx.scale(.5,.5);
+    for(const pass of ['pink','blue']){ctx.save();ctx.globalCompositeOperation='multiply';if(pass==='blue')ctx.translate(3,3);playerLayer(pass,pass==='pink'?PK:BL);ctx.restore()}
+    playerInk(0,0,id); ctx.restore();
+  }
+  ctx=prev; return c;
+}
+function renderShop(){
+  $('#coins').textContent='🪙 '+SAVE.coins;
+  const body=$('#shopBody'); body.innerHTML='';
+  const sec=(kind,title,list)=>{
+    const h=document.createElement('h3'); h.textContent=title; body.append(h);
+    const g=document.createElement('div'); g.className='items';
+    for(const it of list){
+      const owned=SAVE.owned.includes(kind+':'+it.id), eq=SAVE.eq[kind]===it.id;
+      const d=document.createElement('div'); d.className='item'+(eq?' eq':'');
+      const n=document.createElement('div'); n.className='nm'; n.textContent=it.name;
+      const b=document.createElement('button'); b.dataset.kind=kind; b.dataset.id=it.id;
+      b.textContent=eq?'착용 중':owned?'착용':'🪙 '+it.price; if(eq)b.className='on';
+      d.append(previewCanvas(kind,it.id),n,b); g.append(d);
+    }
+    body.append(g);
+  };
+  sec('pk','빼빼로',PEPERO_SKINS); sec('me','나',ME_SKINS);
+}
+function showShop(on){
+  $('#mainCard').style.display=on?'none':'grid'; $('#shopCard').style.display=on?'grid':'none';
+  if(on)renderShop(); else updateCoins();
+}
+$('#shopBody').addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('button'); if(!b||!b.dataset.id)return;
+  const kind=b.dataset.kind,id=b.dataset.id,list=kind==='pk'?PEPERO_SKINS:ME_SKINS,it=list.find(x=>x.id===id),key=kind+':'+id;
+  if(!SAVE.owned.includes(key)){
+    if(SAVE.coins<it.price){$('#shopMsg').textContent='코인이 '+(it.price-SAVE.coins)+'개 모자랍니다. 한 판 더 드시고 오세요.';return}
+    SAVE.coins-=it.price; SAVE.owned.push(key);
+    $('#shopMsg').textContent=it.name+' 구매 완료. 바로 착용했습니다.';
+  }
+  SAVE.eq[kind]=id; persist(); renderShop();
+});
+$('#shopBtn').onclick=()=>showShop(true); $('#shopBack').onclick=()=>showShop(false);
 $('#go').onclick=startGame; $('#menuBtn').onclick=toMenu;
 try{$('#name').value=localStorage.getItem('pepero.name')||''}catch(_){}
 renderLB(0); $('#overlay').classList.add('show');
