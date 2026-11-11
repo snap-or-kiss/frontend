@@ -38,3 +38,8 @@
 1. 순위를 `deviceId`당 하나로 할지, 기록 전부로 할지(BE-15).
 2. 점수 조작 방지를 어디까지 할지(BE-16). 입력 기록 재생은 1차에서 뺀다.
 3. 배포 플랫폼(BE-23).
+
+## K-04 연속 플레이 제출 — draft
+백엔드 담당자 검토 필요. 기존 K-01은 단일 판 계약이다. 연속 기록은 rounds 배열(각 판 eatenMm, remainingMm, durationMs, outcome)을 제출하고 서버가 판별 계산 후 합산하도록 제안한다. outcome은 snap/break/aisnap/kiss/bank. bank는 마지막 판 0점. 중간 판은 snap이면서 remainingMm ≤ 20이어야 한다. 단일 판 점수 상한을 전체 누적 점수에 적용하면 안 된다. 합의 전 서버 연동은 하지 않는다.
+
+K-04 추가 제안: 제출·조회에 mode(basic|continuous)를 포함하고 순위를 분리한다. 기존 기록은 basic으로 취급한다.
