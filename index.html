@@ -58,7 +58,8 @@ button.ghost{background:var(--paper)}
 #snap.show{display:block}
 .hint{word-break:keep-all;text-wrap:balance;max-width:var(--w);color:var(--ink);font-size:12.5px;text-align:center;font-weight:600}
 .shop{grid-template-columns:1fr;max-width:760px;gap:10px}
-.shophead{display:flex;align-items:center;gap:12px}
+.shophead{display:flex;align-items:center;gap:12px;position:sticky;top:-14px;z-index:5;background:var(--paper);padding:10px 0;margin-top:-10px;border-bottom:3px solid var(--ink)}
+.xbtn{width:44px;height:44px;padding:0;font-size:22px;line-height:1;background:var(--yellow);flex:none}
 .shophead h2{margin:0;flex:1}
 .shophead .rank{margin:0}
 #shopBody h3{margin:14px 0 8px;font-size:14px;font-weight:800;background:var(--ink);color:var(--yellow);display:inline-block;padding:3px 10px}
@@ -108,7 +109,7 @@ button.ghost{background:var(--paper)}
       <div class="lb"><h3>🏆 리더보드 (이 기기)</h3><ol id="lb"></ol></div>
     </div>
     <div class="card shop" id="shopCard" style="display:none">
-      <div class="shophead"><h2>상점</h2><span id="coins" class="rank"></span><button id="shopBack" class="ghost">뒤로</button></div>
+      <div class="shophead"><h2>상점</h2><span id="coins" class="rank"></span><button id="shopBack" class="xbtn" aria-label="상점 닫기">✕</button></div>
       <p id="shopMsg">한 판에 먹은 mm만큼 코인이 쌓입니다. 뽀뽀하면 코인도 0입니다.</p>
       <div id="shopBody"></div>
     </div>
@@ -204,6 +205,7 @@ canvas.addEventListener('pointermove',setMouse);
 ['pointerup','pointercancel'].forEach(t=>canvas.addEventListener(t,()=>down=false));
 window.addEventListener('blur',()=>{down=false;keyHold=false});
 window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&$('#shopCard').style.display!=='none'){showShop(false);return}
   if(e.code==='Space'){e.preventDefault();keyHold=true;initAudio()}
   if((e.key==='s'||e.key==='S')&&state==='play')finish('snap');
   if(e.key==='Enter'&&state!=='play'&&!$('#overlay').classList.contains('show'))return;
@@ -342,7 +344,7 @@ function renderShop(){
 }
 function showShop(on){
   $('#mainCard').style.display=on?'none':'grid'; $('#shopCard').style.display=on?'grid':'none';
-  if(on)renderShop(); else updateCoins();
+  if(on){renderShop();$('#overlay').scrollTop=0}else updateCoins();
 }
 $('#shopBody').addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('button'); if(!b||!b.dataset.id)return;
