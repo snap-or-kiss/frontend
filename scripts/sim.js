@@ -29,6 +29,7 @@ Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 
 
 (0, eval)(src + `
 ;globalThis.T={startGame,update,render,finish,showResult,
+  setMode:m=>{selectedMode=m},
   get G(){return G},get state(){return state},get SAVE(){return SAVE},
   setMouse:(x,y)=>{mouse.x=x;mouse.y=y},hold:v=>{down=v},
   C:{L,MM,TOL,PERFECT,KISS}};`);
@@ -72,6 +73,7 @@ for (const [name, policy] of Object.entries(policies)) {
 }
 ok((counts.kiss || 0) > 0 && (counts.snap || 0) > 0, '뽀뽀와 끊기 결과가 모두 나와야 한다: ' + JSON.stringify(counts));
 
+T.setMode('continuous');
 // 두 판 성공 뒤 실패해도 확보 점수 보존. 중간 저장/중복 지급 방지.
 T.startGame();
 const before = T.SAVE.coins;

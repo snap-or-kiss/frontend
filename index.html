@@ -85,7 +85,10 @@ button.ghost{background:var(--paper)}
     <div class="card" id="mainCard">
       <div>
         <div id="menuTop">
-          <h2>빼빼로 데스매치</h2>
+          <h2 id="modeTitle">기본 모드</h2>
+          <div class="row" style="margin:12px 0"><button id="basicMode" aria-pressed="true">기본 모드</button><button id="continuousMode" class="ghost" aria-pressed="false">연속 모드</button></div>
+          <p id="modeDescription">빼빼로 한 개로 승부! 직접 끊어 점수를 확정하세요.</p>
+          <p id="modeStats"></p>
           <p>AI와 빼빼로 한 개. 입술이 닿기 전에 최대한 많이 먹어라. 로맨스는 점수에 포함되지 않습니다.</p>
         </div>
         <div id="resTop" style="display:none">
@@ -134,8 +137,9 @@ const D2R=Math.PI/180;
 const $=s=>document.querySelector(s);
 
 /* ---------- leaderboard (swap this object for a real API later) ---------- */
+let selectedMode='basic';
 const LB={
-  key:'pepero.lb.v1',
+  get key(){return selectedMode==='continuous'?'pepero.lb.continuous.v1':'pepero.lb.v1'},
   load(){try{return JSON.parse(localStorage.getItem(this.key))||[]}catch(e){return[]}},
   add(name,score,outcome){
     const a=this.load(); const e={name,score,outcome,ts:Date.now()};
@@ -145,7 +149,18 @@ const LB={
     return {rank,ts:e.ts};
   }
 };
+function selectMode(mode){
+  if(state==='play'||state==='over')return;
+  selectedMode=mode;
+  $('#modeTitle').textContent=mode==='basic'?'기본 모드':'연속 모드';
+  $('#modeDescription').textContent=mode==='basic'?'빼빼로 한 개로 승부! 직접 끊어 점수를 확정하세요.':'20mm 이하에서 직접 끊으면 다음 빼빼로! 실패하면 연속 도전 종료. 이전 점수는 보존됩니다.';
+  for(const [id,m] of [['basicMode','basic'],['continuousMode','continuous']]){const b=$('#'+id);b.classList.toggle('ghost',mode!==m);b.setAttribute('aria-pressed',String(mode===m))}
+  renderLB(0);
+}
 function renderLB(hiTs){
+  const entries=LB.load();
+  $('#modeStats').textContent=(selectedMode==='basic'?'한 판 최고':'누적 최고')+' · '+(entries[0]?.score||0).toFixed(1)+' mm';
+  document.querySelector('.lb h3').textContent=(selectedMode==='basic'?'기본 모드':'연속 모드')+' 순위 (이 기기)';
   const ol=$('#lb'); ol.innerHTML=''; const a=LB.load().slice(0,10);
   if(!a.length){ol.innerHTML='<div class="empty">아직 아무도 안 먹었어요. 역사를 쓰세요.</div>';return}
   a.forEach((e,i)=>{
@@ -288,16 +303,16 @@ function update(dt){
 function finish(kind){
   if(state!=='play')return;
   state='over'; down=false; snapBtn.classList.remove('show');
-  const mm=G.sp*MM, close=G.R*MM<=20;
+  const mm=G.sp*MM, close=G.R*MM<=20, advance=selectedMode==='continuous'&&kind==='snap'&&close;
   let score=0,title='',msg='';
   if(kind==='bank'){title='오늘은 여기까지!';msg='이전에 확보한 점수를 확정했습니다.'}
-  if(kind==='snap'){score=mm*(close?1.15:1);title=close?'성공! 다음 빼빼로!':'깔끔하게 똑!';msg=close?'남은 20mm 이하 보너스 +15%. 심장이 먼저 부러질 뻔했다.':'더 먹을 수 있었는지는 모르는 게 약이다.'}
+  if(kind==='snap'){score=mm*(close?1.15:1);title=advance?'성공! 다음 빼빼로!':close?'아슬아슬하게 똑!':'깔끔하게 똑!';msg=close?'남은 20mm 이하 보너스 +15%. 심장이 먼저 부러질 뻔했다.':'더 먹을 수 있었는지는 모르는 게 약이다.'}
   if(kind==='aisnap'){score=0;title='AI가 먼저 끊었다';msg='AI가 한 발 빨랐다. 눈 색이 경고하고 있었다. 0점.'}
   if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열 관리 실패. 빼빼로는 당신의 급한 성격을 기억할 것이다. 점수 절반.'}
   if(kind==='kiss'){score=0;title='💋 뽀뽀해버렸다';msg='0점. 이번 AI는 '+['겁쟁이','신중파','무모한 승부사'][G.type]+'였다. 로봇의 첫 키스를 가져간 기분은 어떤가요.'}
-  G.score=Math.round((runTotal+score)*10)/10; G.coins=Math.round(G.score); if(!(kind==='snap'&&close)&&G.coins>0){SAVE.coins+=G.coins;persist()}
+  G.score=Math.round((runTotal+score)*10)/10; G.coins=Math.round(G.score); if(!advance&&G.coins>0){SAVE.coins+=G.coins;persist()}
   $('#cashOut').hidden=true;
-  G.end={advance:kind==='snap'&&close,kind,t:0,frac:.45+Math.random()*.1,title,msg,shown:false};
+  G.end={advance,kind,t:0,frac:.45+Math.random()*.1,title,msg,shown:false};
   if(kind==='kiss'){for(let i=0;i<28;i++)G.hearts.push({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2,vx:(Math.random()-.5)*160,vy:-60-Math.random()*120,life:1.4+Math.random()})}
   else{crunch(.5,600);crumb({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2},18,0)}
 }
@@ -308,7 +323,7 @@ function showResult(){
   $('#resTitle').textContent=e.title; $('#resScore').textContent=G.score.toFixed(1)+' mm';
   let ts=0; const rk=$('#resRank'); rk.style.display='none'; const rc=$('#resCoin'); rc.style.display='none';
   if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;rk.textContent='이 기기 '+r.rank+'위';rk.style.display='inline-block'; rc.textContent='+'+G.coins+' 코인'; rc.style.display='inline-block'; updateCoins()}
-  $('#resMsg').textContent=e.msg+' · '+runRound+'번째 빼빼로 / 누적 기록'; $('#go').textContent='다시 도전';
+  $('#resMsg').textContent=e.msg+(selectedMode==='continuous'?' · '+runRound+'번째 빼빼로 / 누적 기록':''); $('#go').textContent='다시 도전';
   renderLB(ts); $('#overlay').classList.add('show');
 }
 function getName(){const n=$('#name').value.trim()||'익명';try{localStorage.setItem('pepero.name',n)}catch(_){}return n}
@@ -367,6 +382,7 @@ $('#shopBody').addEventListener('click',e=>{
   SAVE.eq[kind]=id; persist(); renderShop();
 });
 $('#shopBtn').onclick=()=>showShop(true); $('#shopBack').onclick=()=>showShop(false);
+$('#basicMode').onclick=()=>selectMode('basic');$('#continuousMode').onclick=()=>selectMode('continuous');
 $('#go').onclick=startGame; $('#menuBtn').onclick=toMenu;
 try{$('#name').value=localStorage.getItem('pepero.name')||''}catch(_){}
 renderLB(0); $('#overlay').classList.add('show');
@@ -623,7 +639,7 @@ function render(){
   ctx.globalAlpha=1; ctx.font='28px system-ui'; ctx.textAlign='center';
   for(const h of G.hearts){ctx.globalAlpha=clamp(h.life,0,1);ctx.fillText('💋',h.x,h.y)}
   ctx.globalAlpha=1; ctx.restore();
-  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 14px '+BODY;ctx.textAlign='left';ctx.fillText(runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm',24,105);}
+  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 14px '+BODY;ctx.textAlign='left';ctx.fillText(selectedMode==='continuous'?runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm':'기본 모드 · 한 개로 승부',24,105);}
   if(state==='play'&&G.t<1.2)sticker('각도를 맞춰라!',W/2,H/2+130,34,YE,-.03);
   if(state==='over'&&G.end.t<1.1)sticker(G.end.title,W/2,H/2-120,38,YE,-.04);
 }
