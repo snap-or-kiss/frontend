@@ -1,0 +1,16 @@
+name: scope-check
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check changed files against PR Scope
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: node scripts/scope-check.js --base "origin/$BASE_REF"
