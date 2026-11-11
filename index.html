@@ -129,9 +129,10 @@ button.ghost{background:var(--paper)}
 /* ---------- constants ---------- */
 const W=960,H=540,CY=262;
 const L=660, X0=150;            // stick length(px), player mouth start x
-const MM=150/L;                 // 1px = 0.227mm  (stick = 150mm)
+const STICK_MM=180, SPEED_SCALE=150/STICK_MM;
+const MM=STICK_MM/L;            // fit the longer stick to the same canvas
 const TOL=9, PERFECT=2.5;       // degrees
-const KISS=12;                  // px
+const KISS=12*SPEED_SCALE;                  // px
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const D2R=Math.PI/180;
 const $=s=>document.querySelector(s);
@@ -275,7 +276,7 @@ function update(dt){
     if(err<=PERFECT*1.4)G.combo=Math.min(1,G.combo+dt*.6);
     else if(err>TOL*.6)G.combo=Math.max(0,G.combo-dt*1.5);
     else G.combo=Math.max(0,G.combo-dt*.3);
-    const v=14*q*(1+.7*G.combo); G.sp+=v*dt; G.stepP+=v*dt;
+    const v=14*SPEED_SCALE*q*(1+.7*G.combo); G.sp+=v*dt; G.stepP+=v*dt;
     if(err>TOL)G.stress+=(8+(err-TOL)*7)*dt;
     else if(err>TOL*.65)G.stress+=2*dt;
     else G.stress-=5*dt;
@@ -289,7 +290,7 @@ function update(dt){
   if(G.t>1.2){
     const base=[7,9.5,12][G.type];
     const m=.55+.8*(.5+.5*Math.sin(G.t*.8+G.ph[3]))+(Math.sin(G.t*2.1+G.ph[4])>.85?.8:0);
-    const v=base*m; G.sa+=v*dt; G.stepA+=v*dt; G.aiEating=true;
+    const v=base*m*SPEED_SCALE; G.sa+=v*dt; G.stepA+=v*dt; G.aiEating=true;
     while(G.stepA>7){G.stepA-=7;crunch(.05,1200);crumb(G.A,1,1)}
   }
   geom();

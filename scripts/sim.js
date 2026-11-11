@@ -40,7 +40,7 @@ const ok = (cond, msg) => { if (!cond) { failed++; console.log('FAIL  ' + msg); 
 const near = (a, b) => Math.abs(a - b) <= 0.051;
 
 // 상수
-ok(Math.abs(T.C.L * T.C.MM - 150) < 1e-6, '빼빼로 길이는 150mm여야 한다');
+ok(Math.abs(T.C.L * T.C.MM - 180) < 1e-6, '빼빼로 길이는 180mm여야 한다');
 ok(T.C.TOL === 9 && T.C.PERFECT === 2.5, '각도 허용치는 9°, 퍼펙트는 2.5°여야 한다(README FE-05)');
 
 function play(policy) {
@@ -63,7 +63,7 @@ for (const [name, policy] of Object.entries(policies)) {
     const G = play(policy), kind = G.end.kind, eaten = G.sp * T.C.MM, left = G.R * T.C.MM;
     counts[kind] = (counts[kind] || 0) + 1;
     ok(['snap', 'aisnap', 'break', 'kiss'].includes(kind), name + ': 알 수 없는 종료 ' + kind);
-    ok(G.score >= 0 && G.score <= 172.5, name + ': 점수가 범위 밖 ' + G.score);
+    ok(G.score >= 0 && G.score <= 207, name + ': 점수가 범위 밖 ' + G.score);
     if (kind === 'aisnap' || kind === 'kiss') ok(G.score === 0, name + ': ' + kind + '은 0점이어야 한다(README A-2). 실제 ' + G.score);
     if (kind === 'break') ok(near(G.score, round1(eaten * 0.5)), name + ': 부러지면 먹은 길이의 절반이어야 한다');
     if (kind === 'snap') ok(near(G.score, round1(eaten * (left <= 20 ? 1.15 : 1))), name + ': 끊으면 먹은 길이(남은 20mm 이하면 ×1.15)여야 한다');
