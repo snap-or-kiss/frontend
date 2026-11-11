@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pepero Game</title>
+<style>
+:root{
+  --bg:#1a0d0a; --panel:#2a1510; --panel2:#3a1d15; --ink:#fff3e6; --muted:#c9a898;
+  --pink:#ff5d8f; --gold:#ffc857; --ok:#5be39b; --bad:#ff4d5e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;padding:12px 16px 20px;gap:10px}
+header{width:100%;max-width:960px;display:flex;justify-content:space-between;align-items:baseline}
+header h1{margin:0;font-size:20px;letter-spacing:-.02em}
+header span{color:var(--muted);font-size:13px}
+#stage{position:relative;width:100%;max-width:960px;aspect-ratio:16/9;border-radius:18px;overflow:hidden;
+  background:#2a1510;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+#overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  background:rgba(20,8,6,.78);backdrop-filter:blur(4px);padding:14px;overflow:auto}
+#overlay.show{display:flex}
+.card{width:100%;max-width:720px;background:var(--panel);border:1px solid #5a2f22;border-radius:18px;
+  padding:20px 22px;display:grid;grid-template-columns:1.1fr 1fr;gap:20px}
+.card h2{margin:0 0 4px;font-size:26px;letter-spacing:-.03em}
+.card p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.5}
+.big{font-size:44px;font-weight:800;color:var(--gold);line-height:1}
+.how{margin:10px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted);line-height:1.6}
+.how b{color:var(--ink)}
+input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #6a3a2b;background:#1d0e0a;color:var(--ink);font-size:15px;margin-bottom:10px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:16px;
+  background:var(--pink);color:#fff}
+button.ghost{background:#4a2619;color:var(--ink)}
+button:active{transform:translateY(1px)}
+.row{display:flex;gap:8px}
+.row button{flex:1}
+.lb h3{margin:0 0 8px;font-size:14px;color:var(--muted);font-weight:600}
+.lb ol{margin:0;padding:0;list-style:none;font-size:14px}
+.lb li{display:flex;gap:8px;padding:6px 8px;border-radius:8px}
+.lb li:nth-child(odd){background:rgba(255,255,255,.04)}
+.lb li.me{background:rgba(255,200,87,.2);outline:1px solid var(--gold)}
+.lb li i{font-style:normal;width:22px;color:var(--muted)}
+.lb li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb li em{font-style:normal;font-weight:700}
+.empty{color:var(--muted);font-size:13px;padding:8px}
+#snap{display:none;width:100%;max-width:960px;background:#ffc857;color:#3a1d15;font-size:18px;padding:16px}
+#snap.show{display:block}
+.hint{max-width:960px;color:var(--muted);font-size:12.5px;text-align:center}
+@media (max-width:700px){.card{grid-template-columns:1fr}.big{font-size:36px}}
+</style>
+</head>
+<body>
+<header><h1>🍫 빼빼로 데스매치</h1><span>11.11 Pepero Day</span></header>
+
+<div id="stage">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <div class="card">
+      <div>
+        <div id="menuTop">
+          <h2>빼빼로 데스매치</h2>
+          <p>AI와 빼빼로 한 개. 입술이 닿기 전에 최대한 많이 먹어라.</p>
+        </div>
+        <div id="resTop" style="display:none">
+          <p id="resTitle" style="font-size:18px;color:var(--ink);font-weight:700;margin-bottom:2px"></p>
+          <div class="big" id="resScore"></div>
+          <p id="resMsg" style="margin-top:8px"></p>
+        </div>
+        <input id="name" maxlength="12" placeholder="닉네임" autocomplete="off">
+        <div class="row">
+          <button id="go">시작</button>
+          <button id="menuBtn" class="ghost" style="display:none">메뉴</button>
+        </div>
+        <ul class="how">
+          <li>🖱 <b>마우스</b>로 입 방향을 AI 입에 맞춘다 (AI는 계속 흔든다)</li>
+          <li>👆 <b>꾹 누르는 동안</b> 먹는다. 각도가 맞을수록 빠르다</li>
+          <li>⚠️ 각도가 틀린 채 먹으면 <b>균열</b> → 부러지면 점수 절반</li>
+          <li>✂️ <b>S키 / 버튼</b>으로 직접 부러뜨려 점수 확정 (남은 길이 20mm 이하면 +15%)</li>
+          <li>💋 입술이 닿으면 <b>0점</b>. AI 눈빛을 읽어라</li>
+        </ul>
+      </div>
+      <div class="lb"><h3>🏆 리더보드 (이 기기)</h3><ol id="lb"></ol></div>
+    </div>
+  </div>
+</div>
+<button id="snap">✂️ 똑! 부러뜨리기 (S)</button>
+<div class="hint">마우스 이동 = 각도 · 클릭 유지 / Space = 먹기 · S = 부러뜨리기</div>
+
+<script>
+'use strict';
+/* ---------- constants ---------- */
+const W=960,H=540,CY=262;
+const L=660, X0=150;            // stick length(px), player mouth start x
+const MM=150/L;                 // 1px = 0.227mm  (stick = 150mm)
+const TOL=9, PERFECT=2.5;       // degrees
+const KISS=12;                  // px
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const D2R=Math.PI/180;
+const $=s=>document.querySelector(s);
+
+/* ---------- leaderboard (swap this object for a real API later) ---------- */
+const LB={
+  key:'pepero.lb.v1',
+  load(){try{return JSON.parse(localStorage.getItem(this.key))||[]}catch(e){return[]}},
+  add(name,score,outcome){
+    const a=this.load(); const e={name,score,outcome,ts:Date.now()};
+    a.push(e); a.sort((x,y)=>y.score-x.score||x.ts-y.ts);
+    const rank=a.indexOf(e)+1;
+    try{localStorage.setItem(this.key,JSON.stringify(a.slice(0,50)))}catch(_){}
+    return {rank,ts:e.ts};
+  }
+};
+function renderLB(hiTs){
+  const ol=$('#lb'); ol.innerHTML=''; const a=LB.load().slice(0,10);
+  if(!a.length){ol.innerHTML='<div class="empty">아직 기록이 없어요. 첫 기록의 주인공이 되세요!</div>';return}
+  a.forEach((e,i)=>{
+    const li=document.createElement('li'); if(e.ts===hiTs)li.className='me';
+    const r=document.createElement('i'); r.textContent=i+1;
+    const n=document.createElement('span'); n.textContent=e.name;
+    const s=document.createElement('em'); s.textContent=e.score.toFixed(1)+'mm';
+    li.append(r,n,s); ol.append(li);
+  });
+}
+
+/* ---------- audio ---------- */
+let ac=null;
+function initAudio(){ if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}} if(ac&&ac.state==='suspended')ac.resume(); }
+function crunch(vol=.12,f=1800){
+  if(!ac)return; const n=ac.sampleRate*.06|0, b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+  const s=ac.createBufferSource(); s.buffer=b;
+  const fl=ac.createBiquadFilter(); fl.type='bandpass'; fl.frequency.value=f+Math.random()*1500;
+  const g=ac.createGain(); g.gain.value=vol; s.connect(fl).connect(g).connect(ac.destination); s.start();
+}
+
+/* ---------- state ---------- */
+const canvas=$('#c'), ctx=canvas.getContext('2d');
+const dpr=Math.min(window.devicePixelRatio||1,2);
+canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+
+let state='menu', G=null, down=false, keyHold=false, last=0;
+const mouse={x:W/2,y:CY};
+const EYE=['#58b8ff','#ffc14d','#ff4d5e'];   // 겁쟁이 / 보통 / 무모함
+const SPR=Array.from({length:46},(_,i)=>({s:(i*97%L),y:((i*53)%17)-8,r:1+(i%3)*.5}));
+
+function newGame(demo=false){
+  const r=Math.random();
+  return {demo,t:0,sp:0,sa:0,alpha:0,dy:0,th:0,R:L,P:{x:X0,y:CY},A:{x:X0+L,y:CY},
+    type:demo?1:(r<.3?0:r<.65?1:2),
+    ph:[0,1,2,3,4].map(()=>Math.random()*6.28),
+    J:{off:0,v:0,next:3.4,warn:0,dir:1,armed:false},
+    stress:0,combo:0,err:0,biting:false,aiEating:false,
+    crumbs:[],hearts:[],stepP:0,stepA:0,end:null,score:0,shake:0};
+}
+G=newGame(true);
+
+/* ---------- input ---------- */
+function setMouse(e){const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)*W/r.width;mouse.y=(e.clientY-r.top)*H/r.height}
+canvas.addEventListener('pointerdown',e=>{initAudio();setMouse(e);down=true;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
+canvas.addEventListener('pointermove',setMouse);
+['pointerup','pointercancel'].forEach(t=>canvas.addEventListener(t,()=>down=false));
+window.addEventListener('blur',()=>{down=false;keyHold=false});
+window.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();keyHold=true;initAudio()}
+  if((e.key==='s'||e.key==='S')&&state==='play')finish('snap');
+  if(e.key==='Enter'&&state!=='play'&&!$('#overlay').classList.contains('show'))return;
+});
+window.addEventListener('keyup',e=>{if(e.code==='Space')keyHold=false});
+const snapBtn=$('#snap');
+snapBtn.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='play')finish('snap');snapBtn.blur()});
+
+/* ---------- game logic ---------- */
+function stepAI(dt){
+  const t=G.t, type=G.type;
+  let amp=Math.min(26+t*1.6,100)*[.9,1,1.15][type]; if(G.demo)amp=38;
+  const wob=amp*(.7*Math.sin(1.1*t+G.ph[0])+.5*Math.sin(2.3*t+G.ph[1])+.3*Math.sin(4.1*t+G.ph[2]));
+  const J=G.J; J.next-=dt;
+  if(J.next<.45&&!J.armed){J.armed=true;J.warn=.45;J.dir=Math.random()<.5?-1:1}
+  if(J.warn>0)J.warn-=dt;
+  if(J.next<=0){J.v+=J.dir*(380+Math.random()*180)*(G.demo?.25:1);J.next=2.4+Math.random()*2.2-Math.min(1,t/40);J.armed=false}
+  J.v+=(-38*J.off-6*J.v)*dt; J.off+=J.v*dt;
+  G.dy=clamp(wob+J.off,-210,210);
+}
+function geom(){
+  const R=L-G.sp-G.sa; G.R=R;
+  G.th=clamp(Math.atan2(G.dy,Math.max(R,1)),-1.25,1.25);
+  G.P={x:X0+G.sp,y:CY};
+  G.A={x:G.P.x+Math.cos(G.th)*R,y:G.P.y+Math.sin(G.th)*R};
+}
+function crumb(p,n,dirx){
+  for(let i=0;i<n;i++)G.crumbs.push({x:p.x,y:p.y,vx:dirx*(20+Math.random()*60)+(Math.random()-.5)*40,
+    vy:-30-Math.random()*60,life:1,s:2+Math.random()*3,c:Math.random()<.7?'#5b2a16':'#e8c27a'});
+}
+function update(dt){
+  G.t+=dt; stepAI(dt);
+  const hold=down||keyHold;
+  // player angle follows cursor (limited speed → hard)
+  const P=G.P; const dx=mouse.x-P.x, dyy=mouse.y-P.y;
+  if(Math.hypot(dx,dyy)>50){
+    const tg=Math.atan2(dyy,dx); let d=tg-G.alpha;
+    const step=clamp(d*(1-Math.exp(-14*dt)),-5*dt,5*dt); G.alpha+=step;
+  }
+  geom();
+  const err=Math.abs(G.alpha-G.th)/D2R; G.err=err;
+  G.biting=hold;
+  if(hold){
+    let q=err<=PERFECT?1:clamp(1-(err-PERFECT)/(TOL-PERFECT),0,1);
+    if(err>=TOL)q=0;
+    if(err<=PERFECT*1.4)G.combo=Math.min(1,G.combo+dt*.6);
+    else if(err>TOL*.6)G.combo=Math.max(0,G.combo-dt*1.5);
+    else G.combo=Math.max(0,G.combo-dt*.3);
+    const v=14*q*(1+.7*G.combo); G.sp+=v*dt; G.stepP+=v*dt;
+    if(err>TOL)G.stress+=(8+(err-TOL)*7)*dt;
+    else if(err>TOL*.65)G.stress+=2*dt;
+    else G.stress-=5*dt;
+    while(G.stepP>6){G.stepP-=6;crunch(.1);crumb(G.P,2,-1)}
+  }else{
+    G.stress-=16*dt; G.combo=Math.max(0,G.combo-dt*.8);
+  }
+  G.stress=clamp(G.stress,0,100);
+  // AI eats
+  G.aiEating=false;
+  if(G.t>1.2){
+    const base=[7,9.5,12][G.type];
+    const m=.55+.8*(.5+.5*Math.sin(G.t*.8+G.ph[3]))+(Math.sin(G.t*2.1+G.ph[4])>.85?.8:0);
+    const v=base*m; G.sa+=v*dt; G.stepA+=v*dt; G.aiEating=true;
+    while(G.stepA>7){G.stepA-=7;crunch(.05,1200);crumb(G.A,1,1)}
+  }
+  geom();
+  G.shake=G.stress>70?(G.stress-70)/30*2.5:0;
+  // end conditions
+  if(G.R<=KISS)return finish('kiss');
+  if(G.stress>=100)return finish('break');
+  const thr=[46,22,-1][G.type];
+  if(G.type<2&&G.t>2&&G.R<=thr)return finish('aisnap');
+}
+function finish(kind){
+  if(state!=='play')return;
+  state='over'; down=false; snapBtn.classList.remove('show');
+  const mm=G.sp*MM, close=G.R*MM<=20;
+  let score=0,title='',msg='';
+  if(kind==='snap'){score=mm*(close?1.15:1);title=close?'아슬아슬하게 똑!':'깔끔하게 똑!';msg=close?'남은 길이 20mm 이하 보너스 +15%':'더 노렸다면 더 먹었을지도?'}
+  if(kind==='aisnap'){score=mm;title='AI가 쫄았다';msg='AI가 먼저 부러뜨렸다. 이번 AI는 겁쟁이/신중파였다.'}
+  if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열을 못 버텼다. 점수 절반.'}
+  if(kind==='kiss'){score=0;title='💋 뽀뽀해버렸다';msg='입술이 닿으면 0점. 이번 AI는 '+['겁쟁이','신중파','무모한 승부사'][G.type]+'였다.'}
+  G.score=Math.round(score*10)/10;
+  G.end={kind,t:0,frac:.45+Math.random()*.1,title,msg,shown:false};
+  if(kind==='kiss'){for(let i=0;i<28;i++)G.hearts.push({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2,vx:(Math.random()-.5)*160,vy:-60-Math.random()*120,life:1.4+Math.random()})}
+  else{crunch(.5,600);crumb({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2},18,0)}
+}
+function showResult(){
+  const e=G.end; e.shown=true;
+  $('#menuTop').style.display='none'; $('#resTop').style.display='block'; $('#menuBtn').style.display='block';
+  $('#resTitle').textContent=e.title; $('#resScore').textContent=G.score.toFixed(1)+' mm';
+  let extra=''; let ts=0;
+  if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;extra=' · 이 기기 '+r.rank+'위'}
+  $('#resMsg').textContent=e.msg+extra; $('#go').textContent='다시 도전';
+  renderLB(ts); $('#overlay').classList.add('show');
+}
+function getName(){const n=$('#name').value.trim()||'익명';try{localStorage.setItem('pepero.name',n)}catch(_){}return n}
+function startGame(){
+  initAudio(); getName(); G=newGame(false); state='play';
+  $('#overlay').classList.remove('show'); snapBtn.classList.add('show');
+}
+function toMenu(){
+  G=newGame(true); state='menu';
+  $('#menuTop').style.display='block'; $('#resTop').style.display='none'; $('#menuBtn').style.display='none';
+  $('#go').textContent='시작'; renderLB(0); $('#overlay').classList.add('show');
+}
+$('#go').onclick=startGame; $('#menuBtn').onclick=toMenu;
+try{$('#name').value=localStorage.getItem('pepero.name')||''}catch(_){}
+renderLB(0); $('#overlay').classList.add('show');
+
+/* ---------- rendering ---------- */
+function rr(x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function circ(x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2)}
+function ell(x,y,rx,ry){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2)}
+
+function drawBG(){
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#3a1a22'); g.addColorStop(1,'#1f0f0b');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,255,255,.04)'; ctx.font='800 220px system-ui'; ctx.textAlign='center'; ctx.fillText('11:11',W/2,CY+80);
+  ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(0,420,W,H-420);
+}
+function drawStickPart(P,th,s0,s1,len,stress,ox=0,oy=0,rot=0){
+  if(s1-s0<2)return;
+  ctx.save(); ctx.translate(P.x+ox,P.y+oy); ctx.rotate(th+rot);
+  const h=13;
+  const g=ctx.createLinearGradient(0,-h,0,h); g.addColorStop(0,'#8a4a2a'); g.addColorStop(.35,'#5b2a16'); g.addColorStop(1,'#3a170b');
+  ctx.fillStyle=g; rr(s0,-h,s1-s0,2*h,h*.7); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.18)'; rr(s0+5,-h+3,Math.max(0,s1-s0-10),4,2); ctx.fill();
+  ctx.fillStyle='#e8c27a';
+  for(const sp of SPR){ const x=sp.s-G.sp; if(x>s0+6&&x<s1-6){ circ(x,sp.y,sp.r); ctx.fill(); } }
+  ctx.fillStyle='#f0c987'; ell(s0,0,3,h-2); ctx.fill(); ell(s1,0,3,h-2); ctx.fill();
+  if(stress>0){
+    const n=Math.floor(stress/16); ctx.strokeStyle='#f0c987'; ctx.lineWidth=2;
+    for(let k=0;k<n;k++){const x=s0+22+k*30; if(x>s1-8)break;
+      ctx.beginPath(); ctx.moveTo(x,-h); ctx.lineTo(x+4,-h/3); ctx.lineTo(x-4,h/3); ctx.lineTo(x+2,h); ctx.stroke();}
+  }
+  ctx.restore();
+}
+function drawPlayer(P,al,open,stress){
+  ctx.save(); ctx.translate(P.x,P.y); ctx.rotate(al);
+  ctx.fillStyle='#ffd9b8'; circ(-50,0,54); ctx.fill();
+  ctx.fillStyle='#2a1a14'; ctx.beginPath(); ctx.arc(-50,0,56,Math.PI*.9,Math.PI*1.72); ctx.lineTo(-50,0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#fff'; circ(-26,-14,8); ctx.fill(); ctx.fillStyle='#2a1a14'; circ(-23,-14,4); ctx.fill();
+  ctx.fillStyle='rgba(255,93,143,.35)'; ell(-20,12,9,6); ctx.fill();
+  if(stress>55){ctx.fillStyle='#7cc7ff'; ell(-44,-44,4,7); ctx.fill()}
+  const o=open*9; ctx.fillStyle='#ff5d8f';
+  ell(2,-(14+o),10,6); ctx.fill(); ell(2,14+o,10,6); ctx.fill();
+  ctx.restore();
+}
+function drawAI(A,th,open,type,warn){
+  ctx.save(); ctx.translate(A.x,A.y); ctx.rotate(th+Math.PI); ctx.scale(1,-1);
+  const g=ctx.createLinearGradient(0,-52,0,52); g.addColorStop(0,'#e3e9f1'); g.addColorStop(1,'#a8b3c2');
+  ctx.fillStyle=g; rr(-106,-52,106,104,24); ctx.fill();
+  ctx.fillStyle='#1b2230'; rr(-98,-40,84,80,16); ctx.fill();
+  ctx.strokeStyle='#a8b3c2'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-70,-52); ctx.lineTo(-70,-70); ctx.stroke();
+  ctx.fillStyle=EYE[type]; circ(-70,-72,5); ctx.fill();
+  const flash=warn>0&&Math.floor(warn*20)%2===0;
+  ctx.fillStyle=flash?'#fff':EYE[type]; ctx.shadowColor=EYE[type]; ctx.shadowBlur=14;
+  rr(-60,-26,36,18,9); ctx.fill(); rr(-60,2,36,18,9); ctx.fill(); ctx.shadowBlur=0;
+  const o=open*9; ctx.fillStyle='#cfd7e2';
+  rr(-8,-(22+o),14,10,4); ctx.fill(); rr(-8,12+o,14,10,4); ctx.fill();
+  ctx.restore();
+  if(warn>0){ctx.fillStyle='#ffdd57';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('!',A.x+Math.cos(th)*-50+50,A.y-86)}
+}
+function drawGauge(){
+  const cx=W/2,y=38,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
+  ctx.fillStyle='rgba(255,255,255,.1)'; rr(cx-w-8,y-9,2*w+16,18,9); ctx.fill();
+  ctx.fillStyle='rgba(91,227,155,.3)'; rr(sx(-TOL),y-9,sx(TOL)-sx(-TOL),18,9); ctx.fill();
+  ctx.fillStyle='rgba(255,200,87,.7)'; rr(sx(-PERFECT),y-9,sx(PERFECT)-sx(-PERFECT),18,4); ctx.fill();
+  const d=(G.alpha-G.th)/D2R; const ok=G.err<=TOL;
+  ctx.fillStyle=ok?'#5be39b':'#ff4d5e'; rr(sx(d)-3,y-15,6,30,3); ctx.fill();
+  ctx.fillStyle='rgba(255,243,230,.6)'; ctx.font='600 12px system-ui'; ctx.textAlign='center';
+  ctx.fillText('각도 오차',cx,y+30);
+  if(G.combo>.15){ctx.fillStyle='#ffc857';ctx.font='800 15px system-ui';ctx.fillText('FLOW ×'+(1+.7*G.combo).toFixed(1),cx,y+50)}
+}
+function drawHUD(){
+  ctx.textAlign='left'; ctx.fillStyle='rgba(255,243,230,.65)'; ctx.font='600 13px system-ui'; ctx.fillText('먹은 길이',24,30);
+  ctx.fillStyle='#fff3e6'; ctx.font='800 40px system-ui'; ctx.fillText((G.sp*MM).toFixed(1)+' mm',24,70);
+  ctx.textAlign='right'; ctx.fillStyle='rgba(255,243,230,.65)'; ctx.font='600 13px system-ui'; ctx.fillText('남은 길이',W-24,30);
+  const rm=G.R*MM; ctx.fillStyle=rm<20?'#ff4d5e':'#fff3e6'; ctx.font='800 40px system-ui'; ctx.fillText(rm.toFixed(1)+' mm',W-24,70);
+  drawGauge();
+  const bw=320,bx=W/2-bw/2,by=H-36;
+  ctx.fillStyle='rgba(255,255,255,.12)'; rr(bx,by,bw,12,6); ctx.fill();
+  const c=G.stress>75?(Math.floor(G.t*10)%2?'#ff4d5e':'#ffb0b8'):G.stress>40?'#ffc857':'#5be39b';
+  ctx.fillStyle=c; rr(bx,by,Math.max(12,bw*G.stress/100),12,6); ctx.fill();
+  ctx.textAlign='center'; ctx.fillStyle='rgba(255,243,230,.6)'; ctx.font='600 12px system-ui'; ctx.fillText('균열',W/2,by-6);
+}
+function render(){
+  ctx.save(); drawBG();
+  if(G.shake)ctx.translate((Math.random()-.5)*G.shake*2,(Math.random()-.5)*G.shake*2);
+  const e=G.end, len=G.R;
+  if(!e){
+    drawStickPart(G.P,G.th,0,len,len,G.stress);
+  }else if(e.kind!=='kiss'){
+    const t=e.t, f=len*e.frac;
+    drawStickPart(G.P,G.th,0,f,len,G.stress,-30*t,70*t*t,-.9*t);
+    drawStickPart(G.P,G.th,f,len,len,0,30*t,70*t*t,.9*t);
+  }
+  const open=(G.biting&&!e)?.5+.5*Math.sin(G.t*16):0;
+  const aopen=(G.aiEating&&!e)?.5+.5*Math.sin(G.t*13+1):0;
+  drawPlayer(G.P,G.alpha,open,G.stress);
+  drawAI(G.A,G.th,aopen,G.type,G.J.warn);
+  for(const c of G.crumbs){ctx.globalAlpha=clamp(c.life,0,1);ctx.fillStyle=c.c;ctx.fillRect(c.x,c.y,c.s,c.s)}
+  ctx.globalAlpha=1;
+  ctx.font='28px system-ui'; ctx.textAlign='center';
+  for(const h of G.hearts){ctx.globalAlpha=clamp(h.life,0,1);ctx.fillText('💋',h.x,h.y)}
+  ctx.globalAlpha=1;
+  ctx.restore();
+  if(state!=='menu')drawHUD();
+  if(state==='play'&&G.t<1.2){ctx.fillStyle='rgba(255,243,230,.9)';ctx.font='800 34px system-ui';ctx.textAlign='center';ctx.fillText('각도를 맞춰라!',W/2,H/2+120)}
+  if(state==='over'&&G.end.t<1.1){ctx.fillStyle='#ffc857';ctx.font='800 44px system-ui';ctx.textAlign='center';ctx.fillText(G.end.title,W/2,H/2-110)}
+}
+function physics(dt){
+  for(const c of G.crumbs){c.vy+=500*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.life-=dt*.9}
+  G.crumbs=G.crumbs.filter(c=>c.life>0&&c.y<H+20);
+  for(const h of G.hearts){h.x+=h.vx*dt;h.y+=h.vy*dt;h.life-=dt}
+  G.hearts=G.hearts.filter(h=>h.life>0);
+}
+function loop(ts){
+  const dt=Math.min(.05,(ts-last)/1000||0); last=ts;
+  if(state==='play')update(dt);
+  else if(state==='menu'){G.t+=dt;stepAI(dt);geom();G.alpha+=(G.th-G.alpha)*Math.min(1,dt*3)}
+  else if(state==='over'){G.end.t+=dt;if(!G.end.shown&&G.end.t>1.2)showResult()}
+  physics(dt); render(); requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
