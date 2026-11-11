@@ -1,0 +1,11 @@
+--- a/index.html
++++ b/index.html
+@@ -126,7 +126,7 @@
+ /* ---------- constants ---------- */
+ const W=960,H=540,CY=262;
+ const L=660, X0=150;            // stick length(px), player mouth start x
+-const MM=150/L;                 // 1px = 0.227mm  (stick = 150mm)
++const MM=15/L;                 // 1px = 0.227mm  (stick = 150mm)
+ const TOL=9, PERFECT=2.5;       // degrees
+ const KISS=12;                  // px
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
