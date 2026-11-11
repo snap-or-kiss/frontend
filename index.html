@@ -9,7 +9,7 @@
 <style>
 :root{
   --paper:#f3efe6; --ink:#111; --pink:#ff48b0; --blue:#0078bf; --yellow:#ffe14d; --sky:#3ec5ff; --red:#ff2e63;
-  --muted:#5a554a; --disp:"Black Han Sans",system-ui,sans-serif;
+  --muted:#5a554a; --w:min(1500px,calc(100vw - 32px),calc((100vh - 210px) * 1.7778)); --disp:"Black Han Sans",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;color:var(--ink);
@@ -17,11 +17,11 @@ html,body{margin:0;min-height:100%;color:var(--ink);
   -webkit-user-select:none;user-select:none;overscroll-behavior:none}
 body{background:var(--yellow);background-image:radial-gradient(rgba(17,17,17,.18) 1.5px,transparent 1.6px);background-size:18px 18px;
   display:flex;flex-direction:column;align-items:center;padding:14px 16px 24px;gap:14px}
-header{width:100%;max-width:960px;display:flex;justify-content:space-between;align-items:center}
+header{width:var(--w);display:flex;justify-content:space-between;align-items:center}
 header h1{margin:0;font-family:var(--disp);font-weight:400;font-size:26px;letter-spacing:-.01em;
   text-shadow:2px 2px 0 var(--pink)}
 header span{font-weight:700;font-size:13px;background:var(--ink);color:var(--yellow);padding:4px 10px;transform:rotate(2deg)}
-#stage{position:relative;width:100%;max-width:960px;aspect-ratio:16/9;overflow:hidden;
+#stage{position:relative;width:var(--w);aspect-ratio:16/9;overflow:hidden;
   background:var(--paper);border:4px solid var(--ink);box-shadow:8px 8px 0 var(--pink)}
 canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 #overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
@@ -30,9 +30,13 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 .card{width:100%;max-width:720px;background:var(--paper);border:4px solid var(--ink);box-shadow:6px 6px 0 var(--blue);
   padding:20px 22px;display:grid;grid-template-columns:1.1fr 1fr;gap:22px}
 .card h2{margin:0 0 4px;font-family:var(--disp);font-weight:400;font-size:32px;line-height:1.1;text-shadow:3px 3px 0 var(--pink)}
-.card p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.5}
+.card p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.55;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
 .big{font-family:var(--disp);font-size:56px;line-height:1;color:var(--ink);text-shadow:4px 4px 0 var(--pink)}
-.how{margin:12px 0 0;padding:0;list-style:none;font-size:13px;color:var(--ink);line-height:1.65}
+.how{margin:14px 0 0;padding:0;list-style:none;font-size:13px;color:var(--ink);line-height:1.55;display:grid;gap:8px}
+.how li{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start}
+.how .ic{text-align:center;font-size:15px;line-height:1.4}
+.how li span:last-child{word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
+.rank{display:inline-block;margin:10px 0 0;padding:3px 10px;background:var(--ink);color:var(--yellow);font-weight:800;font-size:13px;transform:rotate(-1.5deg)}
 input{width:100%;padding:11px 12px;border:3px solid var(--ink);background:#fff;color:var(--ink);font-size:15px;margin-bottom:10px;font-weight:600}
 input:focus{outline:3px solid var(--sky)}
 button{font:inherit;cursor:pointer;border:3px solid var(--ink);padding:12px 18px;font-weight:800;font-size:16px;
@@ -50,9 +54,9 @@ button.ghost{background:var(--paper)}
 .lb li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .lb li em{font-style:normal;font-weight:800}
 .empty{color:var(--muted);font-size:13px;padding:8px}
-#snap{display:none;width:100%;max-width:960px;background:var(--blue);color:#fff;font-size:20px;padding:16px;box-shadow:5px 5px 0 var(--ink)}
+#snap{display:none;width:var(--w);background:var(--blue);color:#fff;font-size:20px;padding:16px;box-shadow:5px 5px 0 var(--ink)}
 #snap.show{display:block}
-.hint{max-width:960px;color:var(--ink);font-size:12.5px;text-align:center;font-weight:600}
+.hint{word-break:keep-all;text-wrap:balance;max-width:var(--w);color:var(--ink);font-size:12.5px;text-align:center;font-weight:600}
 @media (max-width:700px){.card{grid-template-columns:1fr}.big{font-size:42px}header h1{font-size:21px}}
 </style>
 </head>
@@ -66,12 +70,13 @@ button.ghost{background:var(--paper)}
       <div>
         <div id="menuTop">
           <h2>빼빼로 데스매치</h2>
-          <p>AI와 빼빼로 한 개. 입술이 닿기 전에 최대한 많이 먹어라.</p>
+          <p>AI와 빼빼로 한 개. 입술이 닿기 전에 최대한 많이 먹어라. 로맨스는 점수에 포함되지 않습니다.</p>
         </div>
         <div id="resTop" style="display:none">
           <p id="resTitle" style="font-size:18px;color:var(--ink);font-weight:800;margin-bottom:6px"></p>
           <div class="big" id="resScore"></div>
-          <p id="resMsg" style="margin-top:8px"></p>
+          <div id="resRank" class="rank" style="display:none"></div>
+          <p id="resMsg" style="margin-top:12px"></p>
         </div>
         <input id="name" maxlength="12" placeholder="닉네임" autocomplete="off">
         <div class="row">
@@ -79,11 +84,12 @@ button.ghost{background:var(--paper)}
           <button id="menuBtn" class="ghost" style="display:none">메뉴</button>
         </div>
         <ul class="how">
-          <li>🖱 <b>마우스</b>로 입 방향을 AI 입에 맞춘다 (AI는 계속 흔든다)</li>
-          <li>👆 <b>꾹 누르는 동안</b> 먹는다. 각도가 맞을수록 빠르다</li>
-          <li>⚠️ 각도가 틀린 채 먹으면 <b>균열</b> → 부러지면 점수 절반</li>
-          <li>✂️ <b>S키 / 버튼</b>으로 직접 부러뜨려 점수 확정 (남은 길이 20mm 이하면 +15%)</li>
-          <li>💋 입술이 닿으면 <b>0점</b>. AI 눈빛을 읽어라</li>
+          <li><span class="ic">🖱</span><span><b>마우스</b>로 입 방향을 AI 입에 맞춘다. AI는 일부러 흔든다. 인성이 글렀다</span></li>
+          <li><span class="ic">👆</span><span><b>꾹 누르면</b> 먹는다. 각도가 맞을수록 빠르다</span></li>
+          <li><span class="ic">⚠️</span><span>각도가 틀리면 <b>균열</b>. 부러지면 점수 반토막</span></li>
+          <li><span class="ic">✂️</span><span><b>S키 / 버튼</b>으로 직접 똑! 남은 20mm 이하면 +15%</span></li>
+          <li><span class="ic">🤖</span><span>AI가 <b>먼저 끊으면 0점</b>. 눈 색으로 성격을 읽어라</span></li>
+          <li><span class="ic">💋</span><span>입술이 닿아도 <b>0점</b>. 로맨스는 점수에 안 들어간다</span></li>
         </ul>
       </div>
       <div class="lb"><h3>🏆 리더보드 (이 기기)</h3><ol id="lb"></ol></div>
@@ -91,7 +97,7 @@ button.ghost{background:var(--paper)}
   </div>
 </div>
 <button id="snap">✂️ 똑! 부러뜨리기 (S)</button>
-<div class="hint">마우스 이동 = 각도 · 클릭 유지 / Space = 먹기 · S = 부러뜨리기</div>
+<div class="hint">마우스 이동 = 각도 · 클릭 유지 / Space = 먹기 · S = 부러뜨리기 (뽀뽀는 선택 사항이 아닙니다)</div>
 
 <script>
 'use strict';
@@ -119,7 +125,7 @@ const LB={
 };
 function renderLB(hiTs){
   const ol=$('#lb'); ol.innerHTML=''; const a=LB.load().slice(0,10);
-  if(!a.length){ol.innerHTML='<div class="empty">아직 기록이 없어요. 첫 기록의 주인공이 되세요!</div>';return}
+  if(!a.length){ol.innerHTML='<div class="empty">아직 아무도 안 먹었어요. 역사를 쓰세요.</div>';return}
   a.forEach((e,i)=>{
     const li=document.createElement('li'); if(e.ts===hiTs)li.className='me';
     const r=document.createElement('i'); r.textContent=i+1;
@@ -142,8 +148,12 @@ function crunch(vol=.12,f=1800){
 
 /* ---------- state ---------- */
 const canvas=$('#c'), ctx=canvas.getContext('2d');
-const dpr=Math.min(window.devicePixelRatio||1,2);
-canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+function fit(){
+  const w=canvas.getBoundingClientRect().width||W, k=Math.max(1,Math.min(3,w/W*(window.devicePixelRatio||1)));
+  canvas.width=Math.round(W*k); canvas.height=Math.round(H*k); ctx.setTransform(k,0,0,k,0,0);
+  const card=document.querySelector('.card'); if(card)card.style.zoom=Math.max(1,Math.min(1.9,w/W));
+}
+fit(); window.addEventListener('resize',fit);
 
 let state='menu', G=null, down=false, keyHold=false, last=0;
 const mouse={x:W/2,y:CY};
@@ -246,10 +256,10 @@ function finish(kind){
   state='over'; down=false; snapBtn.classList.remove('show');
   const mm=G.sp*MM, close=G.R*MM<=20;
   let score=0,title='',msg='';
-  if(kind==='snap'){score=mm*(close?1.15:1);title=close?'아슬아슬하게 똑!':'깔끔하게 똑!';msg=close?'남은 길이 20mm 이하 보너스 +15%':'더 노렸다면 더 먹었을지도?'}
-  if(kind==='aisnap'){score=mm;title='AI가 쫄았다';msg='AI가 먼저 부러뜨렸다. 이번 AI는 겁쟁이/신중파였다.'}
-  if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열을 못 버텼다. 점수 절반.'}
-  if(kind==='kiss'){score=0;title='💋 뽀뽀해버렸다';msg='입술이 닿으면 0점. 이번 AI는 '+['겁쟁이','신중파','무모한 승부사'][G.type]+'였다.'}
+  if(kind==='snap'){score=mm*(close?1.15:1);title=close?'아슬아슬하게 똑!':'깔끔하게 똑!';msg=close?'남은 20mm 이하 보너스 +15%. 심장이 먼저 부러질 뻔했다.':'더 먹을 수 있었는지는 모르는 게 약이다.'}
+  if(kind==='aisnap'){score=0;title='AI가 먼저 끊었다';msg='AI가 한 발 빨랐다. 눈 색이 경고하고 있었다. 0점.'}
+  if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열 관리 실패. 빼빼로는 당신의 급한 성격을 기억할 것이다. 점수 절반.'}
+  if(kind==='kiss'){score=0;title='💋 뽀뽀해버렸다';msg='0점. 이번 AI는 '+['겁쟁이','신중파','무모한 승부사'][G.type]+'였다. 로봇의 첫 키스를 가져간 기분은 어떤가요.'}
   G.score=Math.round(score*10)/10;
   G.end={kind,t:0,frac:.45+Math.random()*.1,title,msg,shown:false};
   if(kind==='kiss'){for(let i=0;i<28;i++)G.hearts.push({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2,vx:(Math.random()-.5)*160,vy:-60-Math.random()*120,life:1.4+Math.random()})}
@@ -259,9 +269,9 @@ function showResult(){
   const e=G.end; e.shown=true;
   $('#menuTop').style.display='none'; $('#resTop').style.display='block'; $('#menuBtn').style.display='block';
   $('#resTitle').textContent=e.title; $('#resScore').textContent=G.score.toFixed(1)+' mm';
-  let extra=''; let ts=0;
-  if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;extra=' · 이 기기 '+r.rank+'위'}
-  $('#resMsg').textContent=e.msg+extra; $('#go').textContent='다시 도전';
+  let ts=0; const rk=$('#resRank'); rk.style.display='none';
+  if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;rk.textContent='이 기기 '+r.rank+'위';rk.style.display='inline-block'}
+  $('#resMsg').textContent=e.msg; $('#go').textContent='다시 도전';
   renderLB(ts); $('#overlay').classList.add('show');
 }
 function getName(){const n=$('#name').value.trim()||'익명';try{localStorage.setItem('pepero.name',n)}catch(_){}return n}
@@ -345,12 +355,47 @@ function layerAI(pass,col){
   }
   ctx.restore();
 }
+const OUT='#2b1710', SPK=['#ff7eb6','#5cc8ff','#b58cff','#ffb36b'];
+function wavyBand(a,b,hw,amp){
+  ctx.beginPath();
+  for(let x=a;x<=b+.1;x+=4){const y=hw+amp*Math.sin((x+G.sp)*.085); x===a?ctx.moveTo(x,-y):ctx.lineTo(x,-y)}
+  for(let x=b;x>=a-.1;x-=4){const y=hw+amp*Math.sin((x+G.sp)*.085); ctx.lineTo(x,y)}
+  ctx.closePath();
+}
+function realStick(parts){
+  const hs=L*.72-G.sp;
+  for(const p of parts)inStick(p,()=>{
+    const a=p.s0,b=p.s1;
+    ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle=OUT;
+    ctx.save(); ctx.shadowColor='rgba(17,17,17,.35)'; ctx.shadowOffsetY=7; ctx.shadowBlur=7;
+    let g=ctx.createLinearGradient(0,-11,0,11); g.addColorStop(0,'#f8d9a0'); g.addColorStop(1,'#e6b673');
+    ctx.fillStyle=g; wavyBand(a,b,11,0); ctx.fill(); ctx.restore();
+    ctx.stroke();
+    if(hs<b){
+      ctx.strokeStyle='#c9955a'; ctx.lineWidth=1.6;
+      for(let x=Math.max(a,hs)+14,k=0;x<b-8;x+=24,k++){ell(x,k%2?4:-4,3,4.6);ctx.stroke()}
+    }
+    const c1=Math.min(b,hs);
+    if(c1-a>2){
+      g=ctx.createLinearGradient(0,-15,0,15); g.addColorStop(0,'#7a4429'); g.addColorStop(.5,'#52281a'); g.addColorStop(1,'#33160d');
+      ctx.fillStyle=g; ctx.strokeStyle=OUT; ctx.lineWidth=3;
+      wavyBand(a,c1,13,1.8); ctx.fill(); ctx.stroke();
+      if(hs>a&&hs<b){ctx.fillStyle='#52281a';for(let k=0;k<3;k++){ell(hs-1,-9+k*9,6,5);ctx.fill();ctx.stroke()}}
+      ctx.fillStyle='rgba(255,255,255,.28)'; rr(a+6,-9,Math.max(0,c1-a-14),3,1.5); ctx.fill();
+      SPR.forEach((sp,i)=>{const x=sp.s-G.sp; if(x>a+8&&x<c1-8){
+        ctx.save();ctx.translate(x,sp.y*.85);ctx.rotate(sp.s*.7);ctx.fillStyle=SPK[i%4];rr(-3.6,-1.5,7.2,3,1.5);ctx.fill();ctx.restore()}});
+    }
+    for(const x of [a,b]){
+      const choc=x<hs;
+      if(choc){ctx.fillStyle='#4a2216';ell(x,0,5,14);ctx.fill()}
+      ctx.fillStyle='#f4d18f';ell(x,0,3.4,choc?9.5:10.5);ctx.fill();
+      ctx.fillStyle='rgba(120,80,30,.45)';circ(x,-2,1.2);ctx.fill();circ(x,3,1);ctx.fill();
+    }
+  });
+}
 function inkStick(parts){
   for(const p of parts)inStick(p,()=>{
     const a=p.s0,b=p.s1;
-    ctx.fillStyle='rgba(243,239,230,.55)'; rr(a+6,-9,Math.max(0,b-a-12),3,1.5); ctx.fill();
-    ctx.fillStyle=YE; for(const sp of SPR){const x=sp.s-G.sp; if(x>a+8&&x<b-8){circ(x,sp.y,sp.r+.4);ctx.fill()}}
-    ctx.fillStyle=PAPER; ctx.strokeStyle=INK; ctx.lineWidth=2; ell(a,0,3.5,11); ctx.fill(); ctx.stroke(); ell(b,0,3.5,11); ctx.fill(); ctx.stroke();
     if(G.stress>0&&!G.end){
       const n=Math.floor(G.stress/16); ctx.strokeStyle=INK; ctx.lineWidth=3;
       for(let k=0;k<n;k++){const x=a+22+k*30; if(x>b-8)break;
@@ -385,10 +430,10 @@ function drawScene(){
     ctx.save(); ctx.globalCompositeOperation='multiply';
     if(pass==='blue')ctx.translate(off,off*.8);
     const col=pass==='pink'?PK:BL;
-    layerStick(col,parts); layerPlayer(pass,col); layerAI(pass,col);
+    layerPlayer(pass,col); layerAI(pass,col);
     ctx.restore();
   }
-  inkStick(parts); inkPlayer(open); inkAI(aopen);
+  realStick(parts); inkStick(parts); inkPlayer(open); inkAI(aopen);
 }
 function drawGauge(){
   const cx=W/2,y=44,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
