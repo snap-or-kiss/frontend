@@ -345,15 +345,14 @@ function inStick(p,fn){ctx.save();ctx.translate(G.P.x+p.ox,G.P.y+p.oy);ctx.rotat
 function layerStick(col,parts){
   for(const p of parts)inStick(p,()=>{ctx.fillStyle=col;rr(p.s0,-13,p.s1-p.s0,26,10);ctx.fill()});
 }
-function layerPlayer(pass,col){
-  ctx.save(); ctx.translate(G.P.x,G.P.y); ctx.rotate(G.alpha);
+function playerLayer(pass,col){
   if(pass==='pink'){ctx.fillStyle=col;circ(-50,0,54);ctx.fill()}
   else{
     ctx.strokeStyle=col;ctx.lineWidth=6;circ(-50,0,54);ctx.stroke();
     ctx.fillStyle=col;ctx.beginPath();ctx.arc(-50,0,56,Math.PI*.9,Math.PI*1.72);ctx.lineTo(-50,0);ctx.closePath();ctx.fill();
   }
-  ctx.restore();
 }
+function layerPlayer(pass,col){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerLayer(pass,col);ctx.restore()}
 function layerAI(pass,col){
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
   if(pass==='blue'){ctx.fillStyle=col;rr(-106,-52,106,104,24);ctx.fill()}
@@ -447,16 +446,51 @@ function inkStick(parts){
     }
   });
 }
-function inkPlayer(open){
-  ctx.save(); ctx.translate(G.P.x,G.P.y); ctx.rotate(G.alpha);
+const ME_SKINS=[
+  {id:'none',name:'기본',price:0},
+  {id:'band',name:'머리띠와 귀',price:50},
+  {id:'bow',name:'나비넥타이',price:60},
+  {id:'pomp',name:'포마드 머리',price:70},
+  {id:'hood',name:'후드',price:90},
+  {id:'helmet',name:'초록 헬멧',price:110}
+];
+function accessory(id){
+  ctx.save(); ctx.lineJoin='round'; ctx.strokeStyle=INK; ctx.lineWidth=3;
+  if(id==='band'){
+    for(const x of [-88,-14]){ctx.fillStyle=INK;circ(x,-52,16);ctx.fill();ctx.fillStyle='#efe6c8';circ(x,-52,7);ctx.fill()}
+    ctx.save();circ(-50,0,54);ctx.clip();
+    ['#1f5fbf','#fff','#1f5fbf'].forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(-110,-42+i*6,120,6)});
+    ctx.restore();
+  }else if(id==='helmet'){
+    ctx.fillStyle='#59c13a';ctx.beginPath();ctx.arc(-50,0,58,Math.PI*1.15,Math.PI*1.85);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-100,-26);ctx.lineTo(0,-26);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='400 20px '+DISP;ctx.textAlign='center';ctx.fillText('A',-50,-38);
+  }else if(id==='hood'){
+    ctx.fillStyle='#dfe9f2';ctx.beginPath();ctx.arc(-50,0,61,0,Math.PI*2);ctx.arc(-50,0,47,0,Math.PI*2);ctx.fill('evenodd');
+    circ(-50,0,61);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-68,-56);ctx.lineTo(-50,-82);ctx.lineTo(-32,-56);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-58,58);ctx.lineTo(-58,80);ctx.moveTo(-42,58);ctx.lineTo(-42,80);ctx.stroke();
+  }else if(id==='bow'){
+    ctx.fillStyle='#e8312f';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(-48,57);ctx.lineTo(-70,46);ctx.lineTo(-70,68);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-48,57);ctx.lineTo(-26,46);ctx.lineTo(-26,68);ctx.closePath();ctx.fill();ctx.stroke();
+    rr(-54,50,12,14,3);ctx.fill();ctx.stroke();
+  }else if(id==='pomp'){
+    ctx.fillStyle='#4a2420';ctx.beginPath();ctx.moveTo(-94,-22);ctx.bezierCurveTo(-104,-62,-70,-92,-24,-70);
+    ctx.bezierCurveTo(-48,-62,-36,-48,-10,-28);ctx.closePath();ctx.fill();ctx.stroke();
+  }
+  ctx.restore();
+}
+function playerInk(open,stress,me){
+  accessory(me);
   ctx.fillStyle=PAPER; ctx.strokeStyle=INK; ctx.lineWidth=3; circ(-26,-14,9); ctx.fill(); ctx.stroke();
   ctx.fillStyle=INK; circ(-23,-14,4.2); ctx.fill();
   ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-36,-30); ctx.lineTo(-18,-28); ctx.stroke();
-  if(G.stress>55){ctx.fillStyle=SKY;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
+  if(stress>55){ctx.fillStyle=SKY;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
   const o=open*9; ctx.fillStyle=YE; ctx.lineWidth=3;
   ell(3,-(15+o),11,7); ctx.fill(); ctx.stroke(); ell(3,15+o,11,7); ctx.fill(); ctx.stroke();
-  ctx.restore();
 }
+function inkPlayer(open){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerInk(open,G.stress,SAVE.eq.me);ctx.restore()}
 function inkAI(open){
   const warn=G.J.warn>0, flash=warn&&Math.floor(G.J.warn*20)%2===0;
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
