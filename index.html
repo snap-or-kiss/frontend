@@ -75,13 +75,14 @@ button.ghost{background:var(--paper)}
         <div id="resTop" style="display:none">
           <p id="resTitle" style="font-size:18px;color:var(--ink);font-weight:800;margin-bottom:6px"></p>
           <div class="big" id="resScore"></div>
-          <div id="resRank" class="rank" style="display:none"></div>
+          <div id="resRank" class="rank" style="display:none"></div><div id="resCoin" class="rank" style="display:none;margin-left:6px;background:var(--pink);color:var(--ink)"></div>
           <p id="resMsg" style="margin-top:12px"></p>
         </div>
         <input id="name" maxlength="12" placeholder="닉네임" autocomplete="off">
         <div class="row">
           <button id="go">시작</button>
           <button id="menuBtn" class="ghost" style="display:none">메뉴</button>
+          <button id="shopBtn" class="ghost">상점</button>
         </div>
         <ul class="how">
           <li><span class="ic">🖱</span><span><b>마우스</b>로 입 방향을 AI 입에 맞춘다. AI는 일부러 흔든다. 인성이 글렀다</span></li>
@@ -134,6 +135,14 @@ function renderLB(hiTs){
     li.append(r,n,s); ol.append(li);
   });
 }
+
+/* ---------- save / coins ---------- */
+const SAVE_KEY='pepero.save.v1';
+const SAVE={coins:0,owned:['pk:classic','me:none'],eq:{pk:'classic',me:'none'}};
+(function(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));if(d){SAVE.coins=d.coins|0;
+  if(Array.isArray(d.owned))SAVE.owned=Array.from(new Set(SAVE.owned.concat(d.owned)));if(d.eq)Object.assign(SAVE.eq,d.eq)}}catch(_){}})();
+function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(_){}}
+function updateCoins(){const b=$('#shopBtn');if(b)b.textContent='상점 · 🪙 '+SAVE.coins}
 
 /* ---------- audio ---------- */
 let ac=null;
@@ -260,7 +269,7 @@ function finish(kind){
   if(kind==='aisnap'){score=0;title='AI가 먼저 끊었다';msg='AI가 한 발 빨랐다. 눈 색이 경고하고 있었다. 0점.'}
   if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열 관리 실패. 빼빼로는 당신의 급한 성격을 기억할 것이다. 점수 절반.'}
   if(kind==='kiss'){score=0;title='💋 뽀뽀해버렸다';msg='0점. 이번 AI는 '+['겁쟁이','신중파','무모한 승부사'][G.type]+'였다. 로봇의 첫 키스를 가져간 기분은 어떤가요.'}
-  G.score=Math.round(score*10)/10;
+  G.score=Math.round(score*10)/10; G.coins=Math.round(G.score); if(G.coins>0){SAVE.coins+=G.coins;persist()}
   G.end={kind,t:0,frac:.45+Math.random()*.1,title,msg,shown:false};
   if(kind==='kiss'){for(let i=0;i<28;i++)G.hearts.push({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2,vx:(Math.random()-.5)*160,vy:-60-Math.random()*120,life:1.4+Math.random()})}
   else{crunch(.5,600);crumb({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2},18,0)}
@@ -269,8 +278,8 @@ function showResult(){
   const e=G.end; e.shown=true;
   $('#menuTop').style.display='none'; $('#resTop').style.display='block'; $('#menuBtn').style.display='block';
   $('#resTitle').textContent=e.title; $('#resScore').textContent=G.score.toFixed(1)+' mm';
-  let ts=0; const rk=$('#resRank'); rk.style.display='none';
-  if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;rk.textContent='이 기기 '+r.rank+'위';rk.style.display='inline-block'}
+  let ts=0; const rk=$('#resRank'); rk.style.display='none'; const rc=$('#resCoin'); rc.style.display='none';
+  if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;rk.textContent='이 기기 '+r.rank+'위';rk.style.display='inline-block'; rc.textContent='+'+G.coins+' 코인'; rc.style.display='inline-block'; updateCoins()}
   $('#resMsg').textContent=e.msg; $('#go').textContent='다시 도전';
   renderLB(ts); $('#overlay').classList.add('show');
 }
@@ -282,7 +291,7 @@ function startGame(){
 function toMenu(){
   G=newGame(true); state='menu';
   $('#menuTop').style.display='block'; $('#resTop').style.display='none'; $('#menuBtn').style.display='none';
-  $('#go').textContent='시작'; renderLB(0); $('#overlay').classList.add('show');
+  $('#go').textContent='시작'; renderLB(0); updateCoins(); $('#overlay').classList.add('show');
 }
 $('#go').onclick=startGame; $('#menuBtn').onclick=toMenu;
 try{$('#name').value=localStorage.getItem('pepero.name')||''}catch(_){}
