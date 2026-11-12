@@ -10,7 +10,7 @@
 <style>
 :root{
   --paper:#f3efe6; --ink:#111; --pink:#ff48b0; --blue:#0078bf; --yellow:#ffe14d; --sky:#3ec5ff; --red:#ff2e63;
-  --muted:#5a554a; --w:min(2000px,calc(100vw - 32px),calc((100vh - 130px) * 1.7778)); --disp:"Black Han Sans",system-ui,sans-serif;
+  --muted:#5a554a; --w:min(2000px,calc(100vw - 32px)); --h:max(360px,calc(100vh - 130px)); --disp:"Black Han Sans",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;color:var(--ink);
@@ -22,7 +22,7 @@ header{width:var(--w);display:flex;justify-content:space-between;align-items:cen
 header h1{margin:0;font-family:var(--disp);font-weight:400;font-size:26px;letter-spacing:-.01em;
   text-shadow:2px 2px 0 var(--pink)}
 header span{font-weight:700;font-size:13px;background:var(--ink);color:var(--yellow);padding:4px 10px;transform:rotate(2deg)}
-#stage{position:relative;width:var(--w);aspect-ratio:16/9;overflow:hidden;
+#stage{position:relative;width:var(--w);height:var(--h);overflow:hidden;
   background:var(--paper);border:4px solid var(--ink);box-shadow:8px 8px 0 var(--pink)}
 canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 #overlay{position:absolute;inset:0;display:none;align-items:flex-start;justify-content:center;
@@ -55,7 +55,7 @@ button.ghost{background:var(--paper)}
 .lb li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .lb li em{font-style:normal;font-weight:800}
 .empty{color:var(--muted);font-size:13px;padding:8px}
-@supports (height:100dvh){:root{--w:min(2000px,calc(100vw - 32px),calc((100dvh - 130px) * 1.7778))}}
+@supports (height:100dvh){:root{--h:max(360px,calc(100dvh - 130px))}}
 #snap{display:none;position:absolute;left:14px;bottom:14px;z-index:30;width:auto;background:var(--blue);color:#fff;font-size:clamp(14px,2.2vw,20px);padding:clamp(10px,1.8vw,18px) clamp(14px,2.4vw,22px);box-shadow:5px 5px 0 var(--ink)}
 #snap.show{display:flex;align-items:center;gap:.3em}
 .ico{width:1.7em;height:1.7em;flex:none;display:inline-block;vertical-align:middle}
@@ -93,7 +93,7 @@ button .ico,.rank .ico,.lb h3 .ico{width:1.25em;height:1.25em;vertical-align:-.2
   body{padding:0;gap:0;min-height:100vh;justify-content:center;background-color:var(--paper);background-image:none}
   @supports (height:100dvh){body{min-height:100dvh}}
   header,.hint{display:none}
-  #stage{border:0;box-shadow:none}
+  #stage{border:0;box-shadow:none;height:auto;aspect-ratio:16/9}
   .card{padding:14px;gap:14px}
   .card h2{font-size:24px}
   .big{font-size:40px}
@@ -113,7 +113,7 @@ button .ico,.rank .ico,.lb h3 .ico{width:1.25em;height:1.25em;vertical-align:-.2
   input{font-size:clamp(16px,4.4vw,20px);padding:clamp(12px,2vh,18px)}
   button{font-size:clamp(16px,4.6vw,21px);padding:clamp(13px,2.2vh,20px) 18px}
   .lb h3,.lb ol,.rank{font-size:clamp(14px,4vw,17px)}
-  #stage{width:100vw}
+  #stage{width:100vw;height:auto;aspect-ratio:16/9}
 }
 /* 3. Portrait phones, while playing: turn the stage a quarter turn so it fills the screen. */
 @media (orientation:portrait) and (max-width:900px){
@@ -121,7 +121,7 @@ button .ico,.rank .ico,.lb h3 .ico{width:1.25em;height:1.25em;vertical-align:-.2
   @supports (height:100dvh){html.rot{--w:min(100dvh,calc(100vw * 1.7778))}}
   html.rot body{padding:0;background-color:var(--paper);background-image:none}
   html.rot header,html.rot .hint{display:none}
-  html.rot #stage{width:var(--w);position:fixed;left:50%;top:50%;margin:0;border:0;box-shadow:none;transform:translate(-50%,-50%) rotate(-90deg)}
+  html.rot #stage{height:auto;aspect-ratio:16/9;width:var(--w);position:fixed;left:50%;top:50%;margin:0;border:0;box-shadow:none;transform:translate(-50%,-50%) rotate(-90deg)}
 }
 @media (max-width:700px){.card{grid-template-columns:1fr}.big{font-size:42px}header h1{font-size:21px}}
 </style>
@@ -333,11 +333,16 @@ const PORTRAIT_Q='(orientation:portrait) and (max-width:900px)';
 const canvas=$('#c'); let ctx=canvas.getContext('2d');
 let rotWant=false;
 function applyRot(){if(document.documentElement)document.documentElement.classList.toggle('rot',rotWant)}
+// The 960x540 world is scaled to fit and centred; the canvas itself fills the stage, so extra room is just background.
+const VIEW={s:1,ox:0,oy:0,x0:0,y0:0,x1:W,y1:H};
 function fit(){
   applyRot();
-  const w=canvas.offsetWidth||W, k=Math.max(1,Math.min(3,w/W*(window.devicePixelRatio||1)));
-  canvas.width=Math.round(W*k); canvas.height=Math.round(H*k); ctx.setTransform(k,0,0,k,0,0);
-  document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=TOUCH?Math.max(.82,Math.min(1,w/W+.15)):Math.max(1,Math.min(1.9,w/W))});
+  const cw=canvas.offsetWidth||W, ch=canvas.offsetHeight||H, s=Math.min(cw/W,ch/H);
+  const k=Math.max(1,Math.min(3,s*(window.devicePixelRatio||1))), q=k/s;
+  const ox=(cw-W*s)/2, oy=(ch-H*s)/2;
+  Object.assign(VIEW,{s,ox,oy,x0:-ox/s,y0:-oy/s,x1:(cw-ox)/s,y1:(ch-oy)/s});
+  canvas.width=Math.round(cw*q); canvas.height=Math.round(ch*q); ctx.setTransform(k,0,0,k,ox*q,oy*q);
+  document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=TOUCH?Math.max(.82,Math.min(1,s+.15)):Math.max(1,Math.min(1.9,s))});
 }
 fit(); window.addEventListener('resize',fit); window.addEventListener('orientationchange',()=>setTimeout(fit,150));
 if(window.ResizeObserver)new ResizeObserver(()=>fit()).observe(canvas);
@@ -366,7 +371,7 @@ function setMouse(e){
     const cx=r.left+r.width/2, cy=r.top+r.height/2, w=canvas.offsetWidth, h=canvas.offsetHeight;
     mouse.x=((cy-e.clientY)+w/2)*W/w; mouse.y=((e.clientX-cx)+h/2)*H/h; return;
   }
-  mouse.x=(e.clientX-r.left)*W/r.width;mouse.y=(e.clientY-r.top)*H/r.height}
+  mouse.x=(e.clientX-r.left-VIEW.ox)/VIEW.s;mouse.y=(e.clientY-r.top-VIEW.oy)/VIEW.s}
 canvas.addEventListener('pointerdown',e=>{initAudio();setMouse(e);down=true;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
 canvas.addEventListener('pointermove',setMouse);
 ['pointerup','pointercancel'].forEach(t=>canvas.addEventListener(t,()=>down=false));
@@ -558,7 +563,7 @@ const grain=document.createElement('canvas'); grain.width=W; grain.height=H;
 (function(){const g=grain.getContext('2d');g.fillStyle='rgba(17,17,17,.07)';for(let i=0;i<2600;i++)g.fillRect(Math.random()*W,Math.random()*H,1.3,1.3)})();
 
 function drawBG(){
-  ctx.fillStyle=PAPER; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=PAPER; ctx.fillRect(VIEW.x0-1,VIEW.y0-1,VIEW.x1-VIEW.x0+2,VIEW.y1-VIEW.y0+2);
   ctx.save(); ctx.globalCompositeOperation='multiply';
   ctx.fillStyle=PK; ctx.beginPath(); ctx.moveTo(860,452); ctx.lineTo(920,452); ctx.lineTo(890,400); ctx.closePath(); ctx.fill();
   ctx.fillStyle=BL; circ(60,484,16); ctx.fill();
@@ -570,7 +575,7 @@ function drawBG(){
   ctx.beginPath(); for(let i=0;i<6;i++){const x=110+i*18; ctx.lineTo(x,470+(i%2?-9:9));} ctx.stroke();
   ctx.fillStyle=INK; for(let r=0;r<3;r++)for(let c=0;c<4;c++){circ(24+c*12,404+r*12,2);ctx.fill()}
   for(let r=0;r<3;r++)for(let c=0;c<4;c++){circ(880+c*12,150+r*12,2);ctx.fill()}
-  ctx.drawImage(grain,0,0);
+  for(let gx=Math.floor(VIEW.x0/W)*W;gx<VIEW.x1;gx+=W)for(let gy=Math.floor(VIEW.y0/H)*H;gy<VIEW.y1;gy+=H)ctx.drawImage(grain,gx,gy);
 }
 function sticker(txt,x,y,size,fill,rot,txtCol=INK){
   ctx.save(); ctx.translate(x,y); ctx.rotate(rot||0); ctx.font='400 '+size+'px '+DISP;
