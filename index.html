@@ -228,6 +228,8 @@ function crunch(vol=.12,f=1800){
 }
 
 /* ---------- state ---------- */
+const TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||(typeof location!=='undefined'&&/[?&]mobile=1/.test(location.search||''));
+if(TOUCH&&document.documentElement)document.documentElement.classList.add('touch');
 const canvas=$('#c'); let ctx=canvas.getContext('2d');
 function fit(){
   const w=canvas.getBoundingClientRect().width||W, k=Math.max(1,Math.min(3,w/W*(window.devicePixelRatio||1)));
@@ -237,8 +239,6 @@ function fit(){
 fit(); window.addEventListener('resize',fit);
 
 let runTotal=0, runRound=1;
-const TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||(typeof location!=='undefined'&&/[?&]mobile=1/.test(location.search||''));
-if(TOUCH&&document.documentElement)document.documentElement.classList.add('touch');
 let state='menu', G=null, down=false, keyHold=false, biteHold=false, last=0;
 const mouse={x:W/2,y:CY};
 const EYE=['#3ec5ff','#ffe14d','#ff2e63'];   // 겁쟁이 / 보통 / 무모함
@@ -271,6 +271,7 @@ window.addEventListener('keyup',e=>{if(e.code==='Space')keyHold=false});
 const cashOut=document.createElement('button');cashOut.id='cashOut';cashOut.textContent='누적 점수 확정하고 끝내기';cashOut.hidden=true;document.querySelector('.hint').before(cashOut);
 cashOut.onclick=()=>{if(state!=='play'||runTotal<=0)return;finish('bank');};
 const snapBtn=$('#snap'), biteBtn=$('#bite');
+if(TOUCH)snapBtn.textContent='✂️ 똑!';
 function setControls(on){
   snapBtn.classList.toggle('show',on); biteBtn.classList.toggle('show',on);
   if(document.documentElement)document.documentElement.classList.toggle('playing',on);
