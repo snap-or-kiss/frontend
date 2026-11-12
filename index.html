@@ -597,8 +597,8 @@ function stickParts(){
 }
 function inStick(p,fn){ctx.save();ctx.translate(G.P.x+p.ox,G.P.y+p.oy);ctx.rotate(G.th+p.rot);fn();ctx.restore()}
 function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addPath();ctx.clip('evenodd')}
-const SKIN='#f4b48c', SKIN_SH='#e39a73', HAIR='#7a4a33', HAIRD='#3a241a';
-const LIP_LO='#e5807b', LIP_UP='#cd6967', LIP_LINE='#8f3a3d';
+const SKIN='#fad2b6', SKIN_SH='#efb995', HAIR='#7a4a33', HAIRD='#3a241a';
+const LIP_LO=SKIN, LIP_UP=SKIN, LIP_LINE='#b5775a';
 function playerLayer(pass,col){
   const head=HEADP, muz=SNOUTP;
   if(pass==='pink'){ctx.fillStyle=SKIN;ctx.beginPath();head();muz();ctx.fill()}
@@ -749,7 +749,7 @@ function worldToLocal(wx,wy,ang,flipY){
 }
 // Lips: two-tone, wrinkles, gloss. They share the face's riso outline, hidden where they meet the face.
 function drawLips(o,c,fOff,rOff,face){
-  const g=o*.6, rx=9, ry=11.5+g, cx=5.5, lipPath=()=>{ctx.moveTo(cx+rx,0);ctx.ellipse(cx,0,rx,ry,0,0,Math.PI*2)};
+  const g=o*.6, rx=7.5, ry=9.5+g, cx=6.5, lipPath=()=>{ctx.moveTo(cx+rx,0);ctx.ellipse(cx,0,rx,ry,0,0,Math.PI*2)};
   ctx.save(); ctx.translate(fOff[0],fOff[1]);
   ctx.beginPath(); lipPath(); ctx.fillStyle=c.lo; ctx.fill();
   ctx.save(); ctx.beginPath(); lipPath(); ctx.clip(); ctx.fillStyle=c.up; ctx.fillRect(-10,-30,40,30-(g>.8?g*.5:0)); ctx.restore();
@@ -759,11 +759,10 @@ function drawLips(o,c,fOff,rOff,face){
   ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=c.ring; ctx.lineWidth=5; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
   if(g>.8){ctx.fillStyle=c.inner; ell(cx+3,0,3.6,Math.min(3.2,g*.5)); ctx.fill()}
   ctx.lineCap='round'; ctx.lineJoin='round';
-  // small smile-shaped centre line
-  ctx.strokeStyle=c.line; ctx.lineWidth=2.2;
-  ctx.beginPath(); ctx.moveTo(-1.5,0); ctx.quadraticCurveTo(cx+3,2.6,cx+rx-1.5,0); ctx.stroke();
+  // tiny straight crease, pursed like the kissing-face emoji
+  ctx.strokeStyle=c.line; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx-1,0); ctx.lineTo(cx+rx-2.5,0); ctx.stroke();
   // one gloss dot
-  ctx.fillStyle='rgba(255,255,255,.85)'; circ(cx-1,-(ry-4.4),1.6); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.85)'; circ(cx-.5,-(ry-3.6),1.4); ctx.fill();
 }
 function hairPath(){
   ctx.moveTo(-106.1,18.2);
