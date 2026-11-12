@@ -473,11 +473,11 @@ function finish(kind){
   if(kind==='snap'){score=mm*(close?1.15:1);title=advance?'성공! 다음 빼빼로!':close?'아슬아슬하게 똑!':'깔끔하게 똑!';msg=close?'남은 20mm 이하 보너스 +15%. 심장이 먼저 부러질 뻔했다.':'더 먹을 수 있었는지는 모르는 게 약이다.'}
   if(kind==='aisnap'){score=0;title='AI가 먼저 끊었다';msg='AI가 한 발 빨랐다. 눈 색이 경고하고 있었다. 0점.'}
   if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열 관리 실패. 빼빼로는 당신의 급한 성격을 기억할 것이다. 점수 절반.'}
-  if(kind==='kiss'){score=0;title='💋 뽀뽀 사고 접수';const pool=KISS_LINES[G.type];msg=pool[Math.floor(Math.random()*pool.length)]}
+  if(kind==='kiss'){score=0;title='뽀뽀 사고 접수';const pool=KISS_LINES[G.type];msg=pool[Math.floor(Math.random()*pool.length)]}
   G.score=Math.round((runTotal+score)*10)/10; G.coins=Math.round(G.score); if(!advance&&G.coins>0){SAVE.coins+=G.coins;persist()}
   $('#cashOut').hidden=true;
   G.end={advance,kind,t:0,frac:.45+Math.random()*.1,title,msg,shown:false};
-  if(kind==='kiss'){for(let i=0;i<28;i++)G.hearts.push({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2,vx:(Math.random()-.5)*160,vy:-60-Math.random()*120,life:1.4+Math.random()})}
+  if(kind==='kiss'){for(let i=0;i<28;i++)G.hearts.push({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2,vx:(Math.random()-.5)*160,vy:-60-Math.random()*120,life:1.4+Math.random(),r:(Math.random()-.5)*.9,sz:34+Math.random()*30})}
   else{crunch(.5,600);crumb({x:(G.P.x+G.A.x)/2,y:(G.P.y+G.A.y)/2},18,0)}
 }
 function showResult(){
@@ -818,13 +818,25 @@ function drawHUD(){
   ctx.fillStyle=INK; ctx.font='700 '+(TOUCH?14:12)+'px '+BODY; ctx.textAlign='center'; ctx.fillText('균열',W/2,by-6);
   ctx.restore();
 }
+const KISS_UP=typeof Path2D==='function'?new Path2D('M4 33 C10 28 17 22 24 21 C28 20 30 23 32 24.5 C34 23 36 20 40 21 C47 22 54 28 60 33 C52 36 40 36.5 32 36.5 C24 36.5 12 36 4 33 Z'):null;
+const KISS_LO=typeof Path2D==='function'?new Path2D('M4 33 C12 36.5 24 37.5 32 37.5 C40 37.5 52 36.5 60 33 C57 46 45 56 32 56 C19 56 7 46 4 33 Z'):null;
+function kissMark(x,y,size,rot,a){
+  if(!KISS_UP)return;
+  ctx.save(); ctx.globalAlpha=a; ctx.translate(x,y); ctx.rotate(rot); ctx.scale(size/64,size/64); ctx.translate(-32,-32);
+  ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle=INK;
+  ctx.fillStyle='#e8203f'; ctx.fill(KISS_UP); ctx.stroke(KISS_UP);
+  ctx.fillStyle=RED; ctx.fill(KISS_LO); ctx.stroke(KISS_LO);
+  ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(17,44); ctx.bezierCurveTo(21,50,30,52.5,38,50.5); ctx.stroke();
+  ctx.restore();
+}
 function render(){
   ctx.save(); drawBG();
   if(G.shake)ctx.translate((Math.random()-.5)*G.shake*2,(Math.random()-.5)*G.shake*2);
   drawScene();
   for(const c of G.crumbs){ctx.globalAlpha=clamp(c.life,0,1);ctx.fillStyle=c.c;ctx.fillRect(c.x,c.y,c.s,c.s)}
   ctx.globalAlpha=1; ctx.font='28px system-ui'; ctx.textAlign='center';
-  for(const h of G.hearts){ctx.globalAlpha=clamp(h.life,0,1);ctx.fillText('💋',h.x,h.y)}
+  for(const h of G.hearts)kissMark(h.x,h.y,h.sz||44,h.r||0,clamp(h.life,0,1));
   ctx.globalAlpha=1; ctx.restore();
   if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';if(selectedMode==='continuous')ctx.fillText(runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm',TOUCH?28:24,TOUCH?114:105);}
   if(state==='play'&&G.t<1.2)sticker(TOUCH?'꾹 누르고 드래그!':'각도를 맞춰라!',W/2,H/2+130,TOUCH?30:34,YE,-.03);
