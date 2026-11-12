@@ -784,21 +784,6 @@ function drawLips(o,c,fOff,rOff,face){
 }
 function playerInk(open,stress,me,alpha=0){
   accessory(me);
-  // ear
-  ctx.fillStyle=SKIN_SH; ctx.strokeStyle=INK; ctx.lineWidth=2.4; ell(-71,7,6,9); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle='rgba(143,58,61,.55)'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(-71.5,7,2.6,Math.PI*.6,Math.PI*1.7); ctx.stroke();
-  // cheek blush
-  ctx.fillStyle='rgba(255,98,110,.42)'; ell(-28,11,10,5.8); ctx.fill();
-  // eye
-  ctx.fillStyle='#fff'; ctx.strokeStyle=INK; ctx.lineWidth=2.6; ell(-27,-9,8.8,10); ctx.fill(); ctx.stroke();
-  ctx.fillStyle=HAIRD; circ(-24,-8,6.1); ctx.fill();
-  ctx.fillStyle=INK; circ(-23.4,-8,3.1); ctx.fill();
-  ctx.fillStyle='#fff'; circ(-21.6,-11,2.1); ctx.fill(); circ(-26,-5.2,1); ctx.fill();
-  ctx.strokeStyle=INK; ctx.lineWidth=3.4; ctx.lineCap='round';
-  ctx.beginPath(); ctx.ellipse(-27,-9,9.2,10.4,0,Math.PI*1.1,Math.PI*1.88); ctx.stroke();
-  ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-18.5,-15.4); ctx.lineTo(-14.6,-18.8); ctx.moveTo(-21.5,-17.7); ctx.lineTo(-19.6,-21.6); ctx.stroke();
-  // eyebrow
-  ctx.strokeStyle=HAIRD; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-37,-26); ctx.quadraticCurveTo(-27,-33,-17,-27); ctx.stroke();
   if(stress>55){ctx.fillStyle=SKY;ctx.strokeStyle=INK;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
   {const off=2+stress*.12; drawLips(open*9,{lo:LIP_LO,up:LIP_UP,ring:BL,line:LIP_LINE,wrinkle:'rgba(143,58,61,.42)',inner:'#5a1f24'},[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP])}
 }
