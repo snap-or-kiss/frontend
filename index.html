@@ -57,7 +57,11 @@ button.ghost{background:var(--paper)}
 .empty{color:var(--muted);font-size:13px;padding:8px}
 @supports (height:100dvh){:root{--w:min(2000px,calc(100vw - 32px),calc((100dvh - 130px) * 1.7778))}}
 #snap{display:none;position:absolute;left:14px;bottom:14px;z-index:30;width:auto;background:var(--blue);color:#fff;font-size:clamp(14px,2.2vw,20px);padding:clamp(10px,1.8vw,18px) clamp(14px,2.4vw,22px);box-shadow:5px 5px 0 var(--ink)}
-#snap.show{display:block}
+#snap.show{display:flex;align-items:center;gap:.3em}
+.ico{width:1.7em;height:1.7em;flex:none;display:inline-block;vertical-align:middle}
+#snap .ico{transition:transform .12s}
+#snap:active .ico{transform:rotate(-14deg) scale(.92)}
+.how .ic .ico{width:1.5em;height:1.5em}
 #cashOut{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;z-index:30;width:auto;padding:10px 14px;font-size:clamp(11px,1.5vw,13px);white-space:nowrap}
 .hint{word-break:keep-all;text-wrap:balance;max-width:var(--w);color:var(--ink);font-size:12.5px;text-align:center;font-weight:600}
 .shop{grid-template-columns:1fr;max-width:760px;gap:10px}
@@ -117,6 +121,15 @@ button.ghost{background:var(--paper)}
 <body>
 <header><h1>🍫 빼빼로 데스매치</h1><span>11.11 Pepero Day</span></header>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ico-scissors" viewBox="0 0 64 64">
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M22 27 L58 45" stroke="#111" stroke-width="11"/><path d="M22 37 L58 19" stroke="#111" stroke-width="11"/>
+    <path d="M22 27 L58 45" stroke="#fff" stroke-width="5.5"/><path d="M22 37 L58 19" stroke="#fff" stroke-width="5.5"/>
+    <circle cx="13" cy="21" r="8.5" stroke="#111" stroke-width="10.5"/><circle cx="13" cy="43" r="8.5" stroke="#111" stroke-width="10.5"/>
+    <circle cx="13" cy="21" r="8.5" stroke="#ffe14d" stroke-width="5"/><circle cx="13" cy="43" r="8.5" stroke="#ffe14d" stroke-width="5"/>
+  </g>
+  <circle cx="32" cy="32" r="3.4" fill="#111"/>
+</symbol></svg>
 <div id="stage">
   <canvas id="c"></canvas>
   <div id="overlay">
@@ -145,7 +158,7 @@ button.ghost{background:var(--paper)}
           <li><span class="ic">🖱</span><span><b>마우스</b>로 입 방향을 AI 입에 맞춘다. AI는 일부러 흔든다. 인성이 글렀다</span></li>
           <li><span class="ic">👆</span><span><b>꾹 누르면</b> 먹는다. 각도가 맞을수록 빠르다. 대충 먹으면 대충 부러진다</span></li>
           <li><span class="ic">⚠️</span><span>각도가 틀리면 <b>균열</b>이 간다. 부러지면 점수 반토막. 빼빼로도 멘탈이 있다</span></li>
-          <li><span class="ic">✂️</span><span><b>S키 / 버튼</b>으로 직접 똑! 남은 20mm 이하에서 끊으면 +15%! 연속 모드에서는 다음 빼빼로로 이어진다</span></li>
+          <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-scissors"/></svg></span><span><b>S키 / 버튼</b>으로 직접 똑! 남은 20mm 이하에서 끊으면 +15%! 연속 모드에서는 다음 빼빼로로 이어진다</span></li>
           <li><span class="ic">🤖</span><span>AI가 <b>먼저 끊으면 0점</b>. 눈 색이 이미 경고했다. 안 읽은 건 당신 잘못</span></li>
           <li><span class="ic">💋</span><span>입술이 닿으면 <b>0점</b>. 첫 키스치고 너무 비싸다</span></li>
         </ul>
@@ -159,7 +172,7 @@ button.ghost{background:var(--paper)}
     </div>
   </div>
 </div>
-<button id="snap">✂️ 똑! 부러뜨리기 (S)</button>
+<button id="snap"><svg class="ico" aria-hidden="true"><use href="#ico-scissors"/></svg><span>똑! 부러뜨리기 (S)</span></button>
 <div id="rotate" role="alert">
   <svg class="rz" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <polygon points="30,120 90,120 60,66" fill="#ff48b0" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
@@ -292,7 +305,7 @@ window.addEventListener('keyup',e=>{if(e.code==='Space')keyHold=false});
 const cashOut=document.createElement('button');cashOut.id='cashOut';cashOut.textContent='누적 점수 확정하고 끝내기';cashOut.hidden=true;$('#stage').append(cashOut);
 cashOut.onclick=()=>{if(state!=='play'||runTotal<=0)return;finish('bank');};
 const snapBtn=$('#snap'); $('#stage').append(snapBtn);
-if(TOUCH)snapBtn.textContent='✂️ 똑!';
+if(TOUCH)snapBtn.querySelector('span').textContent='똑!';
 function setControls(on){
   snapBtn.classList.toggle('show',on);
   if(document.documentElement)document.documentElement.classList.toggle('playing',on);
