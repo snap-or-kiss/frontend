@@ -12,3 +12,4 @@ jobs:
         with:
           node-version: 20
       - run: node scripts/sim.js
+      - run: SIM_TOUCH=1 node scripts/sim.js

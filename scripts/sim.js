@@ -17,8 +17,10 @@ const mk = () => new Proxy(function () {}, {
     : k === 'value' ? 'tester' : mk(),
   set: () => true, apply: () => mk(),
 });
-global.document = { querySelector: () => mk(), querySelectorAll: () => [], createElement: () => mk() };
-global.window = { addEventListener() {}, devicePixelRatio: 1 };
+global.document = { querySelector: () => mk(), querySelectorAll: () => [], createElement: () => mk(), documentElement: mk() };
+global.window = { addEventListener() {}, devicePixelRatio: 1, matchMedia: () => ({ matches: process.env.SIM_TOUCH === '1' }) };
+global.matchMedia = global.window.matchMedia;
+global.innerWidth = 800; global.innerHeight = 400; global.navigator = { vibrate() {} };
 const store = {};
 global.localStorage = { getItem: k => store[k] ?? null, setItem(k, v) { store[k] = v; } };
 global.requestAnimationFrame = () => {};
