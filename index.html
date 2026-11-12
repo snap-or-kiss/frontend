@@ -349,13 +349,13 @@ let rotWant=false;
 let rotApplied=false;
 function applyRot(){const el=document.documentElement; if(!el||rotApplied===rotWant)return; rotApplied=rotWant; el.classList.toggle('rot',rotWant); fit()} // re-measure right away; a late refit would leave the HUD where the old layout put it
 // The 960x540 world is scaled to fit and centred; the canvas itself fills the stage, so extra room is just background.
-const VIEW={s:1,ox:0,oy:0,x0:0,y0:0,x1:W,y1:H};
+const VIEW={s:1,ox:0,oy:0,x0:0,y0:0,x1:W,y1:H,cw:0,ch:0,dpr:0};
 function fit(){
   applyRot();
   const cw=canvas.offsetWidth||W, ch=canvas.offsetHeight||H, s=Math.min(cw/W,ch/H);
   const k=Math.max(1,Math.min(3,s*(window.devicePixelRatio||1))), q=k/s;
   const ox=(cw-W*s)/2, oy=(ch-H*s)/2;
-  Object.assign(VIEW,{s,ox,oy,x0:-ox/s,y0:-oy/s,x1:(cw-ox)/s,y1:(ch-oy)/s});
+  Object.assign(VIEW,{s,ox,oy,x0:-ox/s,y0:-oy/s,x1:(cw-ox)/s,y1:(ch-oy)/s,cw,ch,dpr:window.devicePixelRatio||1});
   canvas.width=Math.round(cw*q); canvas.height=Math.round(ch*q); ctx.setTransform(k,0,0,k,ox*q,oy*q);
   document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=TOUCH?Math.max(.82,Math.min(1,s+.15)):Math.max(1,Math.min(1.9,s))});
 }
@@ -893,6 +893,8 @@ function kissMark(x,y,size,rot,a){
   ctx.restore();
 }
 function render(){
+  // self-healing: if the canvas size, zoom or rotation changed since the last fit (a missed resize event), re-measure before drawing
+  if(canvas.offsetWidth!==VIEW.cw||canvas.offsetHeight!==VIEW.ch||(window.devicePixelRatio||1)!==VIEW.dpr)fit();
   ctx.save(); drawBG();
   if(G.shake)ctx.translate((Math.random()-.5)*G.shake*2,(Math.random()-.5)*G.shake*2);
   drawScene();
