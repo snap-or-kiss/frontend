@@ -737,7 +737,7 @@ function accessory(id){
   }
   ctx.restore();
 }
-const HEADP=()=>{ctx.moveTo(4,0);ctx.arc(-34,0,38,0,Math.PI*2)};
+const HEAD_R=46, HEADP=()=>{ctx.moveTo(4,0);ctx.arc(4-HEAD_R,0,HEAD_R,0,Math.PI*2)};
 const AIHEADP=()=>rrp(-106,-52,106,104,24), AISNOUTP=()=>rrp(-18,-24,30,48,10);
 function worldToLocal(wx,wy,ang,flipY){
   const c=Math.cos(-ang),sn=Math.sin(-ang); let x=wx*c-wy*sn, y=wx*sn+wy*c; if(flipY)y=-y; return [x,y];
@@ -753,7 +753,7 @@ function drawLips(o,c,fOff,rOff,face){
   if(g>.8){ctx.fillStyle=c.inner; ell(cx,0,3.4,Math.min(3.2,g*.5)); ctx.fill()}
 }
 // accessories were drawn for the old r54 head at x=-50; map them onto the smaller circle
-function playerInk(open,stress,me,alpha=0){ctx.save();ctx.translate(-34,0);ctx.scale(38/54,38/54);ctx.translate(50,0);accessory(me);ctx.restore()}
+function playerInk(open,stress,me,alpha=0){ctx.save();ctx.translate(4-HEAD_R,0);ctx.scale(HEAD_R/54,HEAD_R/54);ctx.translate(50,0);accessory(me);ctx.restore()}
 function inkPlayer(open){inPlayer(()=>playerInk(open,G.stress,SAVE.eq.me,G.alpha))}
 function inkAI(open){
   const warn=G.J.warn>0, flash=warn&&Math.floor(G.J.warn*20)%2===0;
