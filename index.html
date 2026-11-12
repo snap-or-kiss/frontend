@@ -597,7 +597,7 @@ function stickParts(){
 }
 function inStick(p,fn){ctx.save();ctx.translate(G.P.x+p.ox,G.P.y+p.oy);ctx.rotate(G.th+p.rot);fn();ctx.restore()}
 function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addPath();ctx.clip('evenodd')}
-const SKIN='#fad2b6', SKIN_SH='#efb995';
+const SKIN='#ffe3cf', SKIN_SH='#f6cdb0';
 function playerLayer(pass,col){
   // restart: a plain circle. pink fill, thin blue ring.
   if(pass==='pink'){ctx.fillStyle=SKIN;ctx.beginPath();HEADP();ctx.fill()}
@@ -771,7 +771,8 @@ function drawScene(){
     ctx.save(); ctx.globalCompositeOperation='multiply';
     if(pass==='blue')ctx.translate(off,off*.8);
     const col=pass==='pink'?PK:BL;
-    layerPlayer(pass,col); layerAI(pass,col);
+    if(pass==='blue'){ctx.save();ctx.translate(-off,-off*.8);layerPlayer(pass,col);ctx.restore()}else layerPlayer(pass,col); // head outline stays glued to the face
+    layerAI(pass,col);
     ctx.restore();
   }
   realStick(parts); inkStick(parts); inkPlayer(open); inkAI(aopen);
