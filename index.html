@@ -601,14 +601,23 @@ function layerStick(col,parts){
 }
 const MZ={x:-6,r:19};
 function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addPath();ctx.clip('evenodd')}
+const SKIN='#f4b48c', SKIN_SH='#e39a73', HAIR='#7a4a33', HAIRD='#3a241a';
+const LIP_LO='#e5807b', LIP_UP='#cd6967', LIP_LINE='#8f3a3d';
 function playerLayer(pass,col){
   const head=HEADP, muz=SNOUTP;
-  if(pass==='pink'){ctx.fillStyle=col;ctx.beginPath();head();muz();ctx.fill()}
+  if(pass==='pink'){ctx.fillStyle=SKIN;ctx.beginPath();head();muz();ctx.fill()}
   else{
     ctx.strokeStyle=col;ctx.lineWidth=6;
     ctx.save();clipOutside(muz);ctx.beginPath();head();ctx.stroke();ctx.restore();
     ctx.save();clipOutside(head);ctx.beginPath();muz();ctx.stroke();ctx.restore();
-    ctx.fillStyle=col;ctx.beginPath();ctx.arc(-50,0,56,Math.PI*.9,Math.PI*1.72);ctx.lineTo(-50,0);ctx.closePath();ctx.fill();
+    // hair: round cap with a fringe, drawn in the offset ink so it shifts like a print
+    ctx.fillStyle=HAIR; ctx.beginPath();
+    ctx.arc(-50,0,56,Math.PI*.93,Math.PI*1.8);
+    ctx.quadraticCurveTo(-7,-20,-22,-25);
+    ctx.quadraticCurveTo(-31,-14,-43,-24);
+    ctx.quadraticCurveTo(-52,-11,-67,-21);
+    ctx.quadraticCurveTo(-92,-6,-104.7,12.2);
+    ctx.closePath(); ctx.fill();
   }
 }
 function layerPlayer(pass,col){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerLayer(pass,col);ctx.restore()}
@@ -749,27 +758,49 @@ const AIHEADP=()=>rrp(-106,-52,106,104,24), AISNOUTP=()=>rrp(-18,-24,30,48,10);
 function worldToLocal(wx,wy,ang,flipY){
   const c=Math.cos(-ang),sn=Math.sin(-ang); let x=wx*c-wy*sn, y=wx*sn+wy*c; if(flipY)y=-y; return [x,y];
 }
-// Lips share the face colour and the face's riso outline; the outline is hidden where they meet the face.
-function drawLips(o,fillCol,ringCol,fOff,rOff,face,detail){
+// Lips: two-tone, wrinkles, gloss. They share the face's riso outline, hidden where they meet the face.
+function drawLips(o,c,fOff,rOff,face){
   const g=o*.6, ry=14.8+g, lipPath=()=>{ctx.moveTo(16.2,0);ctx.ellipse(6,0,10.2,ry,0,0,Math.PI*2)};
-  ctx.save(); ctx.translate(fOff[0],fOff[1]); ctx.fillStyle=fillCol; ctx.beginPath(); lipPath(); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(fOff[0],fOff[1]);
+  ctx.beginPath(); lipPath(); ctx.fillStyle=c.lo; ctx.fill();
+  ctx.save(); ctx.beginPath(); lipPath(); ctx.clip(); ctx.fillStyle=c.up; ctx.fillRect(-10,-30,40,30+ (g>.8?-g*.5:0)); ctx.restore();
+  ctx.restore();
   ctx.save(); ctx.globalCompositeOperation='multiply';
   for(const f of face)clipOutside(f);
-  ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=ringCol; ctx.lineWidth=6; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
-  if(g>.8){ctx.fillStyle=INK; ell(10.5,0,4.2,Math.min(3.4,g*.5)); ctx.fill()}
-  ctx.strokeStyle=detail; ctx.lineWidth=2.4; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=c.ring; ctx.lineWidth=6; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
+  if(g>.8){ctx.fillStyle=c.inner; ell(10.5,0,4.4,Math.min(3.6,g*.5)); ctx.fill()}
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  // pursing wrinkles
+  ctx.strokeStyle=c.wrinkle; ctx.lineWidth=1.3;
+  for(const sg of [-1,1])for(const x of [8.5,12,14.8]){const y0=sg*(1.6+g*.4), y1=sg*(Math.min(ry-3,8.4+(x-8.5)*.1));ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x+.6,y1);ctx.stroke()}
+  // centre line with a small dip, like a pursed mouth
+  ctx.strokeStyle=c.line; ctx.lineWidth=2.3;
   ctx.beginPath(); ctx.moveTo(-3.6,.4); ctx.quadraticCurveTo(3,-2.8,7,-.6); ctx.quadraticCurveTo(11,2,15.8,.2); ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2.2;
+  // gloss
+  ctx.strokeStyle='rgba(255,255,255,.78)'; ctx.lineWidth=2.1;
   ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*1.12,Math.PI*1.4); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*.62,Math.PI*.8); ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.85)'; circ(-1,-(ry-5.2),1.3); ctx.fill();
 }
 function playerInk(open,stress,me,alpha=0){
   accessory(me);
-  ctx.fillStyle=PAPER; ctx.strokeStyle=INK; ctx.lineWidth=3; circ(-26,-14,9); ctx.fill(); ctx.stroke();
-  ctx.fillStyle=INK; circ(-23,-14,4.2); ctx.fill();
-  ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-36,-30); ctx.lineTo(-18,-28); ctx.stroke();
-  if(stress>55){ctx.fillStyle=SKY;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
-  {const off=2+stress*.12; drawLips(open*9,PK,BL,[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP],'rgba(17,17,17,.75)')}
+  // ear
+  ctx.fillStyle=SKIN_SH; ctx.strokeStyle=INK; ctx.lineWidth=2.4; ell(-71,7,6,9); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle='rgba(143,58,61,.55)'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(-71.5,7,2.6,Math.PI*.6,Math.PI*1.7); ctx.stroke();
+  // cheek blush
+  ctx.fillStyle='rgba(255,98,110,.42)'; ell(-28,11,10,5.8); ctx.fill();
+  // eye
+  ctx.fillStyle='#fff'; ctx.strokeStyle=INK; ctx.lineWidth=2.6; ell(-27,-9,8.8,10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=HAIRD; circ(-24,-8,6.1); ctx.fill();
+  ctx.fillStyle=INK; circ(-23.4,-8,3.1); ctx.fill();
+  ctx.fillStyle='#fff'; circ(-21.6,-11,2.1); ctx.fill(); circ(-26,-5.2,1); ctx.fill();
+  ctx.strokeStyle=INK; ctx.lineWidth=3.4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.ellipse(-27,-9,9.2,10.4,0,Math.PI*1.1,Math.PI*1.88); ctx.stroke();
+  ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-18.5,-15.4); ctx.lineTo(-14.6,-18.8); ctx.moveTo(-21.5,-17.7); ctx.lineTo(-19.6,-21.6); ctx.stroke();
+  // eyebrow
+  ctx.strokeStyle=HAIRD; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-37,-26); ctx.quadraticCurveTo(-27,-33,-17,-27); ctx.stroke();
+  if(stress>55){ctx.fillStyle=SKY;ctx.strokeStyle=INK;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
+  {const off=2+stress*.12; drawLips(open*9,{lo:LIP_LO,up:LIP_UP,ring:BL,line:LIP_LINE,wrinkle:'rgba(143,58,61,.42)',inner:'#5a1f24'},[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP])}
 }
 function inkPlayer(open){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerInk(open,G.stress,SAVE.eq.me,G.alpha);ctx.restore()}
 function inkAI(open){
@@ -777,7 +808,7 @@ function inkAI(open){
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
   ctx.fillStyle=INK; rr(-98,-40,84,80,14); ctx.fill();
   ctx.fillStyle=flash?PAPER:EYE[G.type]; rr(-84,-26,40,16,8); ctx.fill(); rr(-84,6,40,16,8); ctx.fill();
-  {const off=2+G.stress*.12; drawLips(open*9,BL,PK,worldToLocal(off,off*.8,G.th+Math.PI,true),[0,0],[AIHEADP,AISNOUTP],'rgba(255,255,255,.85)')}
+  {const off=2+G.stress*.12; drawLips(open*9,{lo:BL,up:'#0a5d99',ring:PK,line:'rgba(255,255,255,.85)',wrinkle:'rgba(255,255,255,.3)',inner:INK},worldToLocal(off,off*.8,G.th+Math.PI,true),[0,0],[AIHEADP,AISNOUTP])}
   ctx.restore();
   if(warn)sticker('!',G.A.x+Math.cos(G.th)*-50+50,G.A.y-92,28,YE,-.1);
 }
