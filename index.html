@@ -601,7 +601,7 @@ const SKIN='#fad2b6', SKIN_SH='#efb995';
 function playerLayer(pass,col){
   // restart: a plain circle. pink fill, thin blue ring.
   if(pass==='pink'){ctx.fillStyle=SKIN;ctx.beginPath();HEADP();ctx.fill()}
-  else{ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();HEADP();ctx.stroke()}
+  else{ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.beginPath();HEADP();ctx.stroke()}
 }
 function inPlayer(fn){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);fn();ctx.restore()}
 function layerPlayer(pass,col){inPlayer(()=>playerLayer(pass,col))}
