@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#ffe14d">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Pepero Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">
@@ -73,6 +74,43 @@ button.ghost{background:var(--paper)}
 .item .nm{font-weight:800;font-size:13px;word-break:keep-all}
 .item button{padding:6px 8px;font-size:13px;box-shadow:3px 3px 0 var(--ink)}
 .item button.on{opacity:.65;cursor:default;box-shadow:none}
+
+/* ---- mobile (touch) ---- */
+#rotate{display:none}
+.touch{--w:min(100vw,calc(100vh * 1.7778))}
+@supports (height:100dvh){.touch{--w:min(100vw,calc(100dvh * 1.7778))}}
+.touch,.touch body{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.touch body{padding:0;gap:0;min-height:100vh;justify-content:center}
+@supports (height:100dvh){.touch body{min-height:100dvh}}
+.touch header,.touch .hint{display:none}
+.touch #stage{border:0;box-shadow:none}
+.touch .card{padding:14px;gap:14px}
+.touch .card h2{font-size:24px}
+.touch .big{font-size:40px}
+.touch .how{font-size:12px;gap:5px}
+.touch button{touch-action:none}
+.touch #snap{position:fixed;width:auto;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));padding:18px 22px;font-size:20px;z-index:50}
+.touch #cashOut{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;width:auto;padding:10px 14px;font-size:13px}
+#rotate{position:fixed;inset:0;z-index:200;background:var(--paper);background-image:radial-gradient(rgba(17,17,17,.14) 1.5px,transparent 1.6px);background-size:16px 16px;
+  color:var(--ink);align-items:center;justify-content:center;text-align:center;padding:24px;overflow:hidden}
+#rotate .rz{position:absolute;inset:0;width:100%;height:100%}
+#rotate .rc{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px}
+#rotate .phone{width:92px;height:164px;border:5px solid var(--ink);border-radius:18px;background:var(--yellow);box-shadow:7px 7px 0 var(--pink);
+  display:flex;align-items:center;justify-content:center;margin-bottom:34px;animation:rot 2.8s ease-in-out infinite}
+#rotate .screen{width:68px;height:128px;border-radius:9px;background:var(--paper);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center}
+#rotate .stick{display:block;width:54px;height:15px;border:3px solid var(--ink);border-radius:8px;background:#52281a;position:relative;overflow:hidden}
+#rotate .stick i{position:absolute;right:-2px;top:-2px;bottom:-2px;width:17px;background:#f1d9b0;border-left:3px solid var(--ink)}
+#rotate h2{margin:0;font-family:var(--disp);font-weight:400;font-size:44px;line-height:1.15;text-shadow:3px 3px 0 var(--pink);word-break:keep-all}
+#rotate .tag{margin:6px 0 0;padding:8px 14px;background:var(--yellow);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);font-weight:800;font-size:15px;transform:rotate(-2deg);word-break:keep-all}
+#rotate .sub{margin:4px 0 0;font-weight:700;font-size:13px;color:var(--muted);word-break:keep-all}
+@keyframes rot{0%,18%{transform:rotate(0)}52%,82%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){#rotate .phone{animation:none;transform:rotate(-90deg)}}
+@media (orientation:portrait){
+  .touch.playing #rotate{display:flex}
+  .touch #overlay{position:fixed;z-index:100;background:var(--paper);padding:12px}
+  .touch .card{max-width:none}
+  .touch #stage{width:100vw}
+}
 @media (max-width:700px){.card{grid-template-columns:1fr}.big{font-size:42px}header h1{font-size:21px}}
 </style>
 </head>
@@ -122,6 +160,21 @@ button.ghost{background:var(--paper)}
   </div>
 </div>
 <button id="snap">✂️ 똑! 부러뜨리기 (S)</button>
+<div id="rotate" role="alert">
+  <svg class="rz" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <polygon points="30,120 90,120 60,66" fill="#ff48b0" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+    <circle cx="340" cy="150" r="30" fill="#0078bf" stroke="#111" stroke-width="4"/>
+    <path d="M40 700 l20 -22 l20 22 l20 -22 l20 22 l20 -22 l20 22" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="290,730 350,730 320,680" fill="#ffe14d" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+    <g fill="#111"><circle cx="46" cy="300" r="3"/><circle cx="62" cy="300" r="3"/><circle cx="78" cy="300" r="3"/><circle cx="46" cy="316" r="3"/><circle cx="62" cy="316" r="3"/><circle cx="78" cy="316" r="3"/></g>
+  </svg>
+  <div class="rc">
+    <div class="phone"><div class="screen"><span class="stick"><i></i></span></div></div>
+    <h2>가로로<br>돌려주세요!</h2>
+    <p class="tag">돌리는 동안 게임은 멈춰 있어요</p>
+    <p class="sub">빼빼로는 옆으로 먹는 거라서요</p>
+  </div>
+</div>
 <div class="hint">마우스 이동 = 각도 · 클릭 유지 / Space = 먹기 · S = 부러뜨리기 (뽀뽀는 선택 사항이 아닙니다)</div>
 
 <script>
@@ -193,11 +246,13 @@ function crunch(vol=.12,f=1800){
 }
 
 /* ---------- state ---------- */
+const TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||(typeof location!=='undefined'&&/[?&]mobile=1/.test(location.search||''));
+if(TOUCH&&document.documentElement)document.documentElement.classList.add('touch');
 const canvas=$('#c'); let ctx=canvas.getContext('2d');
 function fit(){
   const w=canvas.getBoundingClientRect().width||W, k=Math.max(1,Math.min(3,w/W*(window.devicePixelRatio||1)));
   canvas.width=Math.round(W*k); canvas.height=Math.round(H*k); ctx.setTransform(k,0,0,k,0,0);
-  document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=Math.max(1,Math.min(1.9,w/W))});
+  document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=TOUCH?Math.max(.82,Math.min(1,w/W+.15)):Math.max(1,Math.min(1.9,w/W))});
 }
 fit(); window.addEventListener('resize',fit);
 
@@ -234,6 +289,12 @@ window.addEventListener('keyup',e=>{if(e.code==='Space')keyHold=false});
 const cashOut=document.createElement('button');cashOut.id='cashOut';cashOut.textContent='누적 점수 확정하고 끝내기';cashOut.hidden=true;document.querySelector('.hint').before(cashOut);
 cashOut.onclick=()=>{if(state!=='play'||runTotal<=0)return;finish('bank');};
 const snapBtn=$('#snap');
+if(TOUCH)snapBtn.textContent='✂️ 똑!';
+function setControls(on){
+  snapBtn.classList.toggle('show',on);
+  if(document.documentElement)document.documentElement.classList.toggle('playing',on);
+}
+function buzz(p){try{if(TOUCH&&navigator.vibrate)navigator.vibrate(p)}catch(_){}}
 snapBtn.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='play')finish('snap');snapBtn.blur()});
 
 /* ---------- game logic ---------- */
@@ -303,7 +364,8 @@ function update(dt){
 }
 function finish(kind){
   if(state!=='play')return;
-  state='over'; down=false; snapBtn.classList.remove('show');
+  state='over'; down=false; setControls(false);
+  buzz(kind==='kiss'?[60,40,60]:kind==='snap'||kind==='bank'?25:120);
   const mm=G.sp*MM, close=G.R*MM<=20, advance=selectedMode==='continuous'&&kind==='snap'&&close;
   let score=0,title='',msg='';
   if(kind==='bank'){title='오늘은 여기까지!';msg='이전에 확보한 점수를 확정했습니다.'}
@@ -319,7 +381,7 @@ function finish(kind){
 }
 function showResult(){
   const e=G.end; e.shown=true;
-  if(e.advance){runTotal=G.score;runRound++;G=newGame(false);state='play';down=false;keyHold=false;snapBtn.classList.add('show');$('#cashOut').hidden=false;return;}
+  if(e.advance){runTotal=G.score;runRound++;G=newGame(false);state='play';down=false;keyHold=false;setControls(true);$('#cashOut').hidden=false;return;}
   $('#menuTop').style.display='none'; $('#resTop').style.display='block'; $('#menuBtn').style.display='block';
   $('#resTitle').textContent=e.title; $('#resScore').textContent=G.score.toFixed(1)+' mm';
   let ts=0; const rk=$('#resRank'); rk.style.display='none'; const rc=$('#resCoin'); rc.style.display='none';
@@ -330,7 +392,7 @@ function showResult(){
 function getName(){const n=$('#name').value.trim()||'익명';try{localStorage.setItem('pepero.name',n)}catch(_){}return n}
 function startGame(){
   initAudio(); getName(); runTotal=0;runRound=1;$('#cashOut').hidden=true; G=newGame(false); state='play';
-  $('#overlay').classList.remove('show'); snapBtn.classList.add('show');
+  $('#overlay').classList.remove('show'); setControls(true);
 }
 function toMenu(){
   G=newGame(true); state='menu';
@@ -605,6 +667,7 @@ function drawScene(){
   realStick(parts); inkStick(parts); inkPlayer(open); inkAI(aopen);
 }
 function drawGauge(){
+  const gs=TOUCH?1.25:1; ctx.save(); ctx.translate(W/2,0); ctx.scale(gs,gs); ctx.translate(-W/2,0);
   const cx=W/2,y=44,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
   ctx.fillStyle=INK; rr(cx-w-14+4,y-18+4,2*w+28,36,4); ctx.fill();
   ctx.fillStyle=PAPER; rr(cx-w-14,y-18,2*w+28,36,4); ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=3; ctx.stroke();
@@ -614,23 +677,27 @@ function drawGauge(){
   const d=(G.alpha-G.th)/D2R, ok=G.err<=TOL;
   ctx.fillStyle=INK; ctx.fillRect(sx(d)-5,y-16,10,32);
   ctx.fillStyle=ok?PK:RED; ctx.fillRect(sx(d)-2.5,y-13,5,26);
-  ctx.fillStyle=INK; ctx.font='700 12px '+BODY; ctx.textAlign='center'; ctx.fillText('각도 오차',cx,y+36);
-  if(G.combo>.15)sticker('FLOW ×'+(1+.7*G.combo).toFixed(1),cx,y+66,16,YE,-.05);
+  ctx.fillStyle=INK; ctx.font='700 '+(TOUCH?14:12)+'px '+BODY; ctx.textAlign='center'; ctx.fillText('각도 오차',cx,y+(TOUCH?38:36));
+  if(G.combo>.15)sticker('FLOW ×'+(1+.7*G.combo).toFixed(1),cx,y+(TOUCH?70:66),16,YE,-.05);
+  ctx.restore();
 }
 function drawHUD(){
-  ctx.fillStyle=INK; ctx.font='700 13px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',24,30);
-  rtext((G.sp*MM).toFixed(1)+' mm',24,72,40,'left');
+  const LB=TOUCH?19:13, NS=TOUCH?46:40, NY=TOUCH?80:72, m=TOUCH?28:24;
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',m,TOUCH?34:30);
+  rtext((G.sp*MM).toFixed(1)+' mm',m,NY,NS,'left');
   const rm=G.R*MM;
-  ctx.fillStyle=INK; ctx.font='700 13px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',W-24,30);
-  rtext(rm.toFixed(1)+' mm',W-24,72,40,'right',rm<20?RED:INK);
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',W-m,TOUCH?34:30);
+  rtext(rm.toFixed(1)+' mm',W-m,NY,NS,'right',rm<20?RED:INK);
   drawGauge();
+  const ss=TOUCH?1.3:1; ctx.save(); ctx.translate(W/2,H); ctx.scale(ss,ss); ctx.translate(-W/2,-H);
   const bw=320,bx=W/2-bw/2,by=H-38;
   ctx.fillStyle=INK; rr(bx+3,by+3,bw,14,2); ctx.fill();
   ctx.fillStyle=PAPER; rr(bx,by,bw,14,2); ctx.fill();
   const c=G.stress>75?(Math.floor(G.t*10)%2?RED:PK):G.stress>40?YE:SKY;
   ctx.fillStyle=c; ctx.fillRect(bx+2,by+2,Math.max(0,(bw-4)*G.stress/100),10);
   ctx.strokeStyle=INK; ctx.lineWidth=3; rr(bx,by,bw,14,2); ctx.stroke();
-  ctx.fillStyle=INK; ctx.font='700 12px '+BODY; ctx.textAlign='center'; ctx.fillText('균열',W/2,by-6);
+  ctx.fillStyle=INK; ctx.font='700 '+(TOUCH?14:12)+'px '+BODY; ctx.textAlign='center'; ctx.fillText('균열',W/2,by-6);
+  ctx.restore();
 }
 function render(){
   ctx.save(); drawBG();
@@ -640,8 +707,8 @@ function render(){
   ctx.globalAlpha=1; ctx.font='28px system-ui'; ctx.textAlign='center';
   for(const h of G.hearts){ctx.globalAlpha=clamp(h.life,0,1);ctx.fillText('💋',h.x,h.y)}
   ctx.globalAlpha=1; ctx.restore();
-  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 14px '+BODY;ctx.textAlign='left';ctx.fillText(selectedMode==='continuous'?runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm':'기본 모드 · 한 개로 승부',24,105);}
-  if(state==='play'&&G.t<1.2)sticker('각도를 맞춰라!',W/2,H/2+130,34,YE,-.03);
+  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';ctx.fillText(selectedMode==='continuous'?runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm':'기본 모드 · 한 개로 승부',TOUCH?28:24,TOUCH?114:105);}
+  if(state==='play'&&G.t<1.2)sticker(TOUCH?'꾹 누르고 드래그!':'각도를 맞춰라!',W/2,H/2+130,TOUCH?30:34,YE,-.03);
   if(state==='over'&&G.end.t<1.1)sticker(G.end.title,W/2,H/2-120,38,YE,-.04);
 }
 function physics(dt){
@@ -652,7 +719,7 @@ function physics(dt){
 }
 function loop(ts){
   const dt=Math.min(.05,(ts-last)/1000||0); last=ts;
-  if(state==='play')update(dt);
+  if(state==='play'&&!(TOUCH&&innerHeight>innerWidth))update(dt);
   else if(state==='menu'){G.t+=dt;stepAI(dt);geom();G.alpha+=(G.th-G.alpha)*Math.min(1,dt*3)}
   else if(state==='over'){G.end.t+=dt;if(!G.end.shown&&G.end.t>1.2)showResult()}
   physics(dt); render(); requestAnimationFrame(loop);
