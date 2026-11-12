@@ -61,7 +61,10 @@ button.ghost{background:var(--paper)}
 .ico{width:1.7em;height:1.7em;flex:none;display:inline-block;vertical-align:middle}
 #snap .ico{transition:transform .12s}
 #snap:active .ico{transform:rotate(-14deg) scale(.92)}
-.how .ic .ico{width:1.5em;height:1.5em}
+.how .ic .ico{width:1.6em;height:1.6em}
+.logo{width:1.2em;height:1.2em;vertical-align:-.2em}
+button .ico,.rank .ico,.lb h3 .ico{width:1.25em;height:1.25em;vertical-align:-.28em}
+.xbtn .ico{width:22px;height:22px}
 #cashOut{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;z-index:30;width:auto;padding:10px 14px;font-size:clamp(11px,1.5vw,13px);white-space:nowrap}
 .hint{word-break:keep-all;text-wrap:balance;max-width:var(--w);color:var(--ink);font-size:12.5px;text-align:center;font-weight:600}
 .shop{grid-template-columns:1fr;max-width:760px;gap:10px}
@@ -119,9 +122,10 @@ button.ghost{background:var(--paper)}
 </style>
 </head>
 <body>
-<header><h1>🍫 빼빼로 데스매치</h1><span>11.11 Pepero Day</span></header>
+<header><h1><svg class="ico logo" aria-hidden="true"><use href="#ico-choco"/></svg> 빼빼로 데스매치</h1><span>11.11 Pepero Day</span></header>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ico-scissors" viewBox="0 0 64 64">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="ico-scissors" viewBox="0 0 64 64">
   <g stroke-linecap="round" stroke-linejoin="round" fill="none">
     <path d="M22 27 L58 45" stroke="#111" stroke-width="11"/><path d="M22 37 L58 19" stroke="#111" stroke-width="11"/>
     <path d="M22 27 L58 45" stroke="#fff" stroke-width="5.5"/><path d="M22 37 L58 19" stroke="#fff" stroke-width="5.5"/>
@@ -129,7 +133,80 @@ button.ghost{background:var(--paper)}
     <circle cx="13" cy="21" r="8.5" stroke="#ffe14d" stroke-width="5"/><circle cx="13" cy="43" r="8.5" stroke="#ffe14d" stroke-width="5"/>
   </g>
   <circle cx="32" cy="32" r="3.4" fill="#111"/>
-</symbol></svg>
+</symbol>
+<symbol id="ico-mouse" viewBox="0 0 64 64">
+  <g stroke="#111" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 4 C22 14 36 8 36 20" fill="none" stroke-width="4.5"/>
+    <rect x="17" y="20" width="30" height="41" rx="15" fill="#fff" stroke-width="4.5"/>
+    <path d="M32 20 A15 15 0 0 0 17 35 H32 Z" fill="#ff48b0" stroke-width="4.5"/>
+    <path d="M17 35 H47" fill="none" stroke-width="4"/>
+    <rect x="29.5" y="24.5" width="5" height="10" rx="2.5" fill="#ffe14d" stroke-width="3"/>
+  </g>
+</symbol>
+<symbol id="ico-finger" viewBox="0 0 64 64">
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 13 V35" stroke="#111" stroke-width="18" fill="none"/>
+    <rect x="21" y="34" width="35" height="26" rx="11" fill="#111" stroke="#111" stroke-width="6"/>
+    <path d="M20 40 L25 50" stroke="#111" stroke-width="15" fill="none"/>
+    <path d="M30 13 V35" stroke="#fff" stroke-width="11" fill="none"/>
+    <rect x="21" y="34" width="35" height="26" rx="11" fill="#fff"/>
+    <path d="M20 40 L25 50" stroke="#fff" stroke-width="9" fill="none"/>
+    <path d="M39 38 V47 M47 38 V47" stroke="#111" stroke-width="2.8" fill="none"/>
+    <rect x="23" y="53" width="31" height="7" rx="3" fill="#ff48b0" stroke="#111" stroke-width="3"/>
+  </g>
+</symbol>
+<symbol id="ico-warn" viewBox="0 0 64 64">
+  <path d="M32 6 L59 53 Q61.5 58 56 58 H8 Q2.5 58 5 53 Z" fill="#ffe14d" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+  <rect x="29" y="22" width="6" height="19" rx="3" fill="#111"/><circle cx="32" cy="48.5" r="3.6" fill="#111"/>
+</symbol>
+<symbol id="ico-robot" viewBox="0 0 64 64">
+  <g stroke="#111" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 20 V11" fill="none" stroke-width="4.5"/>
+    <circle cx="32" cy="8" r="4.2" fill="#ff48b0" stroke-width="3.5"/>
+    <rect x="5" y="30" width="7" height="13" rx="2.5" fill="#ffe14d" stroke-width="3.5"/>
+    <rect x="52" y="30" width="7" height="13" rx="2.5" fill="#ffe14d" stroke-width="3.5"/>
+    <rect x="11" y="20" width="42" height="35" rx="9" fill="#0078bf" stroke-width="4.5"/>
+    <rect x="18" y="29" width="11" height="10" rx="3.5" fill="#ffe14d" stroke-width="3"/>
+    <rect x="35" y="29" width="11" height="10" rx="3.5" fill="#ffe14d" stroke-width="3"/>
+    <rect x="22" y="44" width="20" height="5" rx="2.5" fill="#fff" stroke-width="3"/>
+  </g>
+</symbol>
+<symbol id="ico-kiss" viewBox="0 0 64 64">
+  <g stroke="#111" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.6">
+    <path d="M5 34 C10 22 22 17 32 26 C42 17 54 22 59 34 C48 31 40 32 32 34 C24 32 16 31 5 34 Z" fill="#ff2e63"/>
+    <path d="M5 34 C16 37 24 37 32 36 C40 37 48 37 59 34 C55 51 43 58 32 58 C21 58 9 51 5 34 Z" fill="#ff2e63"/>
+  </g>
+  <path d="M20 46 C25 51 34 52 42 49" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+</symbol>
+<symbol id="ico-coin" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="25" fill="#ffe14d" stroke="#111" stroke-width="5"/>
+  <circle cx="32" cy="32" r="15" fill="none" stroke="#111" stroke-width="3.2" opacity=".55"/>
+  <path d="M22 24 C25 19 31 17 37 18" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M32 22 L35.2 28.8 L42.6 29.6 L37.1 34.6 L38.7 41.9 L32 38.1 L25.3 41.9 L26.9 34.6 L21.4 29.6 L28.8 28.8 Z" fill="#111" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/>
+</symbol>
+<symbol id="ico-trophy" viewBox="0 0 64 64">
+  <g stroke="#111" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5">
+    <path d="M20 17 H9 C9 30 14 33 22 33 M44 17 H55 C55 30 50 33 42 33" fill="none"/>
+    <path d="M18 8 H46 V28 C46 39 39 46 32 46 C25 46 18 39 18 28 Z" fill="#ffe14d"/>
+    <rect x="28" y="46" width="8" height="8" fill="#ffe14d"/>
+    <rect x="19" y="54" width="26" height="7" rx="2.5" fill="#ff48b0"/>
+  </g>
+  <path d="M25 15 V27" stroke="#fff" stroke-width="3.2" stroke-linecap="round" opacity=".8"/>
+</symbol>
+<symbol id="ico-choco" viewBox="0 0 64 64">
+  <g transform="rotate(-38 32 32)" stroke="#111" stroke-linejoin="round" stroke-width="4">
+    <rect x="3" y="21" width="38" height="22" rx="11" fill="#52281a"/>
+    <rect x="37" y="24" width="24" height="16" rx="8" fill="#f4d18f"/>
+    <path d="M37 24 V40" stroke-width="3.2" fill="none"/>
+  </g>
+  <g fill="#ff7eb6"><rect x="12" y="14" width="6" height="3" rx="1.5" transform="rotate(-20 15 15)"/></g>
+  <g fill="#5cc8ff"><rect x="20" y="28" width="6" height="3" rx="1.5" transform="rotate(30 23 29)"/></g>
+  <g fill="#b58cff"><rect x="13" y="36" width="6" height="3" rx="1.5" transform="rotate(10 16 37)"/></g>
+</symbol>
+<symbol id="ico-x" viewBox="0 0 64 64">
+  <path d="M15 15 L49 49 M49 15 L15 49" stroke="#111" stroke-width="10" stroke-linecap="round" fill="none"/>
+</symbol>
+</svg>
 <div id="stage">
   <canvas id="c"></canvas>
   <div id="overlay">
@@ -155,18 +232,18 @@ button.ghost{background:var(--paper)}
           <button id="shopBtn" class="ghost">상점</button>
         </div>
         <ul class="how">
-          <li><span class="ic">🖱</span><span><b>마우스</b>로 입 방향을 AI 입에 맞춘다. AI는 일부러 흔든다. 인성이 글렀다</span></li>
-          <li><span class="ic">👆</span><span><b>꾹 누르면</b> 먹는다. 각도가 맞을수록 빠르다. 대충 먹으면 대충 부러진다</span></li>
-          <li><span class="ic">⚠️</span><span>각도가 틀리면 <b>균열</b>이 간다. 부러지면 점수 반토막. 빼빼로도 멘탈이 있다</span></li>
+          <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-mouse"/></svg></span><span><b>마우스</b>로 입 방향을 AI 입에 맞춘다. AI는 일부러 흔든다. 인성이 글렀다</span></li>
+          <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-finger"/></svg></span><span><b>꾹 누르면</b> 먹는다. 각도가 맞을수록 빠르다. 대충 먹으면 대충 부러진다</span></li>
+          <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-warn"/></svg></span><span>각도가 틀리면 <b>균열</b>이 간다. 부러지면 점수 반토막. 빼빼로도 멘탈이 있다</span></li>
           <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-scissors"/></svg></span><span><b>S키 / 버튼</b>으로 직접 똑! 남은 20mm 이하에서 끊으면 +15%! 연속 모드에서는 다음 빼빼로로 이어진다</span></li>
-          <li><span class="ic">🤖</span><span>AI가 <b>먼저 끊으면 0점</b>. 눈 색이 이미 경고했다. 안 읽은 건 당신 잘못</span></li>
-          <li><span class="ic">💋</span><span>입술이 닿으면 <b>0점</b>. 첫 키스치고 너무 비싸다</span></li>
+          <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-robot"/></svg></span><span>AI가 <b>먼저 끊으면 0점</b>. 눈 색이 이미 경고했다. 안 읽은 건 당신 잘못</span></li>
+          <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-kiss"/></svg></span><span>입술이 닿으면 <b>0점</b>. 첫 키스치고 너무 비싸다</span></li>
         </ul>
       </div>
-      <div class="lb"><h3>🏆 리더보드 (이 기기)</h3><ol id="lb"></ol></div>
+      <div class="lb"><h3><svg class="ico" aria-hidden="true"><use href="#ico-trophy"/></svg> 리더보드 (이 기기)</h3><ol id="lb"></ol></div>
     </div>
     <div class="card shop" id="shopCard" style="display:none">
-      <div class="shophead"><h2>상점</h2><span id="coins" class="rank"></span><button id="shopBack" class="xbtn" aria-label="상점 닫기">✕</button></div>
+      <div class="shophead"><h2>상점</h2><span id="coins" class="rank"></span><button id="shopBack" class="xbtn" aria-label="상점 닫기"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>
       <p id="shopMsg">한 판에 먹은 mm만큼 코인이 쌓입니다. 뽀뽀하면 코인도 0입니다.</p>
       <div id="shopBody"></div>
     </div>
@@ -245,7 +322,8 @@ const SAVE={coins:0,owned:['pk:classic','me:none'],eq:{pk:'classic',me:'none'}};
 (function(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));if(d){SAVE.coins=d.coins|0;
   if(Array.isArray(d.owned))SAVE.owned=Array.from(new Set(SAVE.owned.concat(d.owned)));if(d.eq)Object.assign(SAVE.eq,d.eq)}}catch(_){}})();
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(_){}}
-function updateCoins(){const b=$('#shopBtn');if(b)b.textContent='상점 · 🪙 '+SAVE.coins}
+const COIN='<svg class="ico" aria-hidden="true"><use href="#ico-coin"/></svg>';
+function updateCoins(){const b=$('#shopBtn');if(b)b.innerHTML='상점 · '+COIN+' '+SAVE.coins}
 
 /* ---------- audio ---------- */
 let ac=null;
@@ -433,7 +511,7 @@ function previewCanvas(kind,id){
   ctx=prev; return c;
 }
 function renderShop(){
-  $('#coins').textContent='🪙 '+SAVE.coins;
+  $('#coins').innerHTML=COIN+' '+SAVE.coins;
   const body=$('#shopBody'); body.innerHTML='';
   const sec=(kind,title,list)=>{
     const h=document.createElement('h3'); h.textContent=title; body.append(h);
@@ -443,7 +521,7 @@ function renderShop(){
       const d=document.createElement('div'); d.className='item'+(eq?' eq':'');
       const n=document.createElement('div'); n.className='nm'; n.textContent=it.name;
       const b=document.createElement('button'); b.dataset.kind=kind; b.dataset.id=it.id;
-      b.textContent=eq?'착용 중':owned?'착용':'🪙 '+it.price; if(eq)b.className='on';
+      if(eq)b.textContent='착용 중';else if(owned)b.textContent='착용';else b.innerHTML=COIN+' '+it.price; if(eq)b.className='on';
       d.append(previewCanvas(kind,it.id),n,b); g.append(d);
     }
     body.append(g);
