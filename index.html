@@ -602,7 +602,7 @@ function layerStick(col,parts){
 const MZ={x:-6,r:19};
 function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addPath();ctx.clip('evenodd')}
 function playerLayer(pass,col){
-  const head=()=>{ctx.moveTo(4,0);ctx.arc(-50,0,54,0,Math.PI*2)}, muz=()=>{ctx.moveTo(MZ.x+MZ.r,0);ctx.arc(MZ.x,0,MZ.r,0,Math.PI*2)};
+  const head=HEADP, muz=SNOUTP;
   if(pass==='pink'){ctx.fillStyle=col;ctx.beginPath();head();muz();ctx.fill()}
   else{
     ctx.strokeStyle=col;ctx.lineWidth=6;
@@ -614,7 +614,7 @@ function playerLayer(pass,col){
 function layerPlayer(pass,col){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerLayer(pass,col);ctx.restore()}
 function rrp(x,y,w,h,r){ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function layerAI(pass,col){
-  const head=()=>rrp(-106,-52,106,104,24), snout=()=>rrp(-18,-24,30,48,10);
+  const head=AIHEADP, snout=AISNOUTP;
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
   if(pass==='blue'){ctx.fillStyle=col;ctx.beginPath();head();snout();ctx.fill()}
   else{
@@ -744,32 +744,40 @@ function accessory(id){
   }
   ctx.restore();
 }
-function drawLips(o,fill){
-  const g=o*.6, ry=14.8+g;
-  ctx.beginPath(); ctx.ellipse(6,0,10.2,ry,0,0,Math.PI*2);
-  ctx.fillStyle=fill; ctx.fill(); ctx.lineWidth=2.6; ctx.strokeStyle=INK; ctx.lineJoin='round'; ctx.stroke();
+const HEADP=()=>{ctx.moveTo(4,0);ctx.arc(-50,0,54,0,Math.PI*2)}, SNOUTP=()=>rrp(-28,-17.5,38,35,14);
+const AIHEADP=()=>rrp(-106,-52,106,104,24), AISNOUTP=()=>rrp(-18,-24,30,48,10);
+function worldToLocal(wx,wy,ang,flipY){
+  const c=Math.cos(-ang),sn=Math.sin(-ang); let x=wx*c-wy*sn, y=wx*sn+wy*c; if(flipY)y=-y; return [x,y];
+}
+// Lips share the face colour and the face's riso outline; the outline is hidden where they meet the face.
+function drawLips(o,fillCol,ringCol,fOff,rOff,face,detail){
+  const g=o*.6, ry=14.8+g, lipPath=()=>{ctx.moveTo(16.2,0);ctx.ellipse(6,0,10.2,ry,0,0,Math.PI*2)};
+  ctx.save(); ctx.translate(fOff[0],fOff[1]); ctx.fillStyle=fillCol; ctx.beginPath(); lipPath(); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.globalCompositeOperation='multiply';
+  for(const f of face)clipOutside(f);
+  ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=ringCol; ctx.lineWidth=6; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
   if(g>.8){ctx.fillStyle=INK; ell(10.5,0,4.2,Math.min(3.4,g*.5)); ctx.fill()}
-  ctx.strokeStyle=INK; ctx.lineWidth=2.4; ctx.lineCap='round';
+  ctx.strokeStyle=detail; ctx.lineWidth=2.4; ctx.lineCap='round'; ctx.lineJoin='round';
   ctx.beginPath(); ctx.moveTo(-3.6,.4); ctx.quadraticCurveTo(3,-2.8,7,-.6); ctx.quadraticCurveTo(11,2,15.8,.2); ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=2.2;
+  ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2.2;
   ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*1.12,Math.PI*1.4); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*.62,Math.PI*.8); ctx.stroke();
 }
-function playerInk(open,stress,me){
+function playerInk(open,stress,me,alpha=0){
   accessory(me);
   ctx.fillStyle=PAPER; ctx.strokeStyle=INK; ctx.lineWidth=3; circ(-26,-14,9); ctx.fill(); ctx.stroke();
   ctx.fillStyle=INK; circ(-23,-14,4.2); ctx.fill();
   ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-36,-30); ctx.lineTo(-18,-28); ctx.stroke();
   if(stress>55){ctx.fillStyle=SKY;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
-  drawLips(open*9,RED);
+  {const off=2+stress*.12; drawLips(open*9,PK,BL,[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP],'rgba(17,17,17,.75)')}
 }
-function inkPlayer(open){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerInk(open,G.stress,SAVE.eq.me);ctx.restore()}
+function inkPlayer(open){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerInk(open,G.stress,SAVE.eq.me,G.alpha);ctx.restore()}
 function inkAI(open){
   const warn=G.J.warn>0, flash=warn&&Math.floor(G.J.warn*20)%2===0;
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
   ctx.fillStyle=INK; rr(-98,-40,84,80,14); ctx.fill();
   ctx.fillStyle=flash?PAPER:EYE[G.type]; rr(-84,-26,40,16,8); ctx.fill(); rr(-84,6,40,16,8); ctx.fill();
-  drawLips(open*9,'#dfe7f0');
+  {const off=2+G.stress*.12; drawLips(open*9,BL,PK,worldToLocal(off,off*.8,G.th+Math.PI,true),[0,0],[AIHEADP,AISNOUTP],'rgba(255,255,255,.85)')}
   ctx.restore();
   if(warn)sticker('!',G.A.x+Math.cos(G.th)*-50+50,G.A.y-92,28,YE,-.1);
 }
