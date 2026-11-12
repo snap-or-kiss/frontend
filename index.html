@@ -785,22 +785,10 @@ function hairPath(){
   ctx.bezierCurveTo(-102,16,-104,17,-106.1,18.2);
   ctx.closePath();
 }
-// Layered hair: base colour, crown shine, strands, and a shifted riso outline.
+// Plain hair: one flat colour, no outline or inner lines.
 function drawHair(off){
   ctx.save(); ctx.translate(off[0],off[1]);
   ctx.beginPath(); hairPath(); ctx.fillStyle='#4b2c1e'; ctx.fill();
-  ctx.save(); ctx.clip();
-  ctx.fillStyle='rgba(120,72,46,.55)'; ctx.beginPath(); ctx.ellipse(-52,-52,44,16,-.12,0,Math.PI*2); ctx.fill();
-  ctx.lineCap='round';
-  ctx.strokeStyle='rgba(255,214,176,.38)'; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(-84,-30); ctx.quadraticCurveTo(-52,-60,-16,-40); ctx.stroke();
-  ctx.strokeStyle='rgba(255,232,206,.65)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-80,-34); ctx.quadraticCurveTo(-52,-57,-20,-41); ctx.stroke();
-  ctx.strokeStyle='rgba(20,8,4,.6)'; ctx.lineWidth=1.8;
-  for(const [x0,y0,cx,cy,x1,y1] of [[-18,-50,-26,-36,-14,-25],[-34,-54,-44,-40,-32,-29],[-50,-57,-60,-43,-52,-31],[-68,-50,-80,-34,-72,-18],[-86,-34,-98,-18,-92,2],[-94,-14,-102,0,-98,14]]){
-    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(cx,cy,x1,y1); ctx.stroke();
-  }
-  ctx.restore();
-  ctx.globalCompositeOperation='multiply'; ctx.strokeStyle=BL; ctx.lineWidth=3.2; ctx.lineJoin='round';
-  ctx.beginPath(); hairPath(); ctx.stroke();
   ctx.restore();
 }
 function playerInk(open,stress,me,alpha=0){
