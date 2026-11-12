@@ -10,7 +10,7 @@
 <style>
 :root{
   --paper:#f3efe6; --ink:#111; --pink:#ff48b0; --blue:#0078bf; --yellow:#ffe14d; --sky:#3ec5ff; --red:#ff2e63;
-  --muted:#5a554a; --w:min(2000px,calc(100vw - 32px),calc((100vh - 130px) * 1.7778)); --disp:"Black Han Sans",system-ui,sans-serif;
+  --muted:#5a554a; --w:calc(100vw - 32px); --h:max(360px,calc(100vh - 130px)); --disp:"Black Han Sans",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;color:var(--ink);
@@ -22,7 +22,7 @@ header{width:var(--w);display:flex;justify-content:space-between;align-items:cen
 header h1{margin:0;font-family:var(--disp);font-weight:400;font-size:26px;letter-spacing:-.01em;
   text-shadow:2px 2px 0 var(--pink)}
 header span{font-weight:700;font-size:13px;background:var(--ink);color:var(--yellow);padding:4px 10px;transform:rotate(2deg)}
-#stage{position:relative;width:var(--w);aspect-ratio:16/9;overflow:hidden;
+#stage{position:relative;width:var(--w);height:var(--h);overflow:hidden;
   background:var(--paper);border:4px solid var(--ink);box-shadow:8px 8px 0 var(--pink)}
 canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 #overlay{position:absolute;inset:0;display:none;align-items:flex-start;justify-content:center;
@@ -30,6 +30,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 #overlay.show{display:flex}
 .card{margin:auto;width:100%;max-width:720px;background:var(--paper);border:4px solid var(--ink);box-shadow:6px 6px 0 var(--blue);
   padding:20px 22px;display:grid;grid-template-columns:1.1fr 1fr;gap:22px}
+.card>*{min-width:0} /* grid items may shrink below their content, so long names or labels can't widen the card */
 .card h2{margin:0 0 4px;font-family:var(--disp);font-weight:400;font-size:32px;line-height:1.1;text-shadow:3px 3px 0 var(--pink)}
 .card p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.55;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
 .big{font-family:var(--disp);font-size:56px;line-height:1;color:var(--ink);text-shadow:4px 4px 0 var(--pink)}
@@ -46,7 +47,7 @@ button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
 button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
 button.ghost{background:var(--paper)}
 .row{display:flex;flex-wrap:wrap;gap:10px}
-.row button{flex:1 1 0;min-width:max-content;white-space:nowrap}
+.row button{flex:1 1 0;min-width:min(max-content,100%);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lb h3{margin:0 0 8px;font-size:14px;font-weight:800;background:var(--ink);color:var(--yellow);display:inline-block;padding:3px 10px}
 .lb ol{margin:0;padding:0;list-style:none;font-size:14px}
 .lb li{display:flex;gap:8px;padding:8px 10px;border-bottom:2px dotted rgba(17,17,17,.35)}
@@ -55,7 +56,7 @@ button.ghost{background:var(--paper)}
 .lb li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .lb li em{font-style:normal;font-weight:800}
 .empty{color:var(--muted);font-size:13px;padding:8px}
-@supports (height:100dvh){:root{--w:min(2000px,calc(100vw - 32px),calc((100dvh - 130px) * 1.7778))}}
+@supports (height:100dvh){:root{--h:max(360px,calc(100dvh - 130px))}}
 #snap{display:none;position:absolute;left:14px;bottom:14px;z-index:30;width:auto;background:var(--blue);color:#fff;font-size:clamp(14px,2.2vw,20px);padding:clamp(10px,1.8vw,18px) clamp(14px,2.4vw,22px);box-shadow:5px 5px 0 var(--ink)}
 #snap.show{display:flex;align-items:center;gap:.3em}
 .ico{width:1.7em;height:1.7em;flex:none;display:inline-block;vertical-align:middle}
@@ -87,13 +88,13 @@ button .ico,.rank .ico,.lb h3 .ico{width:1.25em;height:1.25em;vertical-align:-.2
 /* ---- responsive layout (CSS media queries) ---- */
 /* 1. Touch screens and short windows: the stage fills the window, no page chrome. */
 @media (pointer:coarse),(max-height:620px){
-  :root{--w:min(100vw,calc(100vh * 1.7778))}
-  @supports (height:100dvh){:root{--w:min(100vw,calc(100dvh * 1.7778))}}
+  :root{--w:100vw;--h:100vh}
+  @supports (height:100dvh){:root{--h:100dvh}}
   html,body{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
   body{padding:0;gap:0;min-height:100vh;justify-content:center;background-color:var(--paper);background-image:none}
   @supports (height:100dvh){body{min-height:100dvh}}
   header,.hint{display:none}
-  #stage{border:0;box-shadow:none}
+  #stage{border:0;box-shadow:none;box-sizing:border-box;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
   .card{padding:14px;gap:14px}
   .card h2{font-size:24px}
   .big{font-size:40px}
@@ -107,21 +108,33 @@ button .ico,.rank .ico,.lb h3 .ico{width:1.25em;height:1.25em;vertical-align:-.2
     padding:max(22px,env(safe-area-inset-top)) clamp(18px,5vw,40px) max(26px,env(safe-area-inset-bottom));
     display:flex;flex-direction:column;justify-content:flex-start;justify-content:safe center;gap:clamp(14px,2.6vh,26px)}
   .card h2{font-size:clamp(30px,9vw,48px)}
-  .card p,.how{font-size:clamp(14px,4vw,18px)}
-  .how{gap:clamp(8px,1.6vh,14px)}
+  .card p{font-size:clamp(14px,3.9vw,17px)}
+  /* menu: one clear stack — title, mode, one short line, name + buttons, rulebook box, ranking */
+  #menuTop{display:grid;gap:10px;margin-bottom:16px}
+  #menuTop #modeTitle{display:none}
+  #menuTop::before{content:"빼빼로 데스매치";font-family:var(--disp);font-size:clamp(30px,9vw,44px);line-height:1.1;text-shadow:3px 3px 0 var(--pink)}
+  #menuTop .row{margin:0!important}
+  #menuTop p{margin:0}
+  #modeStats:empty{display:none}
+  #modeStats{font-weight:800;color:var(--ink)}
+  #mainCard input{margin-bottom:12px}
+  .how{margin-top:clamp(14px,2.4vh,22px);padding:clamp(14px,4vw,20px);border:3px solid var(--ink);background:#fff;box-shadow:4px 4px 0 var(--blue);
+    font-size:clamp(13px,3.6vw,16px);gap:clamp(10px,1.8vh,14px);position:relative}
+  .how::before{content:"공식 경기 규정";position:absolute;top:-14px;left:12px;padding:2px 10px;background:var(--ink);color:var(--yellow);font-weight:800;font-size:13px;transform:rotate(-1.5deg)}
+  .how li{grid-template-columns:30px 1fr;gap:10px}
   .big{font-size:clamp(46px,15vw,76px)}
   input{font-size:clamp(16px,4.4vw,20px);padding:clamp(12px,2vh,18px)}
   button{font-size:clamp(16px,4.6vw,21px);padding:clamp(13px,2.2vh,20px) 18px}
   .lb h3,.lb ol,.rank{font-size:clamp(14px,4vw,17px)}
-  #stage{width:100vw}
+  #stage{width:100vw;height:auto;aspect-ratio:16/9}
 }
 /* 3. Portrait phones, while playing: turn the stage a quarter turn so it fills the screen. */
 @media (orientation:portrait) and (max-width:900px){
-  html.rot{--w:min(100vh,calc(100vw * 1.7778))}
-  @supports (height:100dvh){html.rot{--w:min(100dvh,calc(100vw * 1.7778))}}
+  html.rot{--w:100vh;--h:100vw}
+  @supports (height:100dvh){html.rot{--w:100dvh}}
   html.rot body{padding:0;background-color:var(--paper);background-image:none}
   html.rot header,html.rot .hint{display:none}
-  html.rot #stage{width:var(--w);position:fixed;left:50%;top:50%;margin:0;border:0;box-shadow:none;transform:translate(-50%,-50%) rotate(-90deg)}
+  html.rot #stage{height:var(--h);box-sizing:border-box;padding:env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom);width:var(--w);position:fixed;left:50%;top:50%;margin:0;border:0;box-shadow:none;transform:translate(-50%,-50%) rotate(-90deg)}
 }
 @media (max-width:700px){.card{grid-template-columns:1fr}.big{font-size:42px}header h1{font-size:21px}}
 </style>
@@ -314,7 +327,8 @@ const SAVE={coins:0,owned:['pk:classic','me:none'],eq:{pk:'classic',me:'none'}};
   if(Array.isArray(d.owned))SAVE.owned=Array.from(new Set(SAVE.owned.concat(d.owned)));if(d.eq)Object.assign(SAVE.eq,d.eq)}}catch(_){}})();
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(_){}}
 const COIN='<svg class="ico" aria-hidden="true"><use href="#ico-coin"/></svg>';
-function updateCoins(){const b=$('#shopBtn');if(b)b.innerHTML='상점 · '+COIN+' '+SAVE.coins}
+const fmtCoins=n=>n>=10000?(n/10000).toFixed(1).replace(/\.0$/,'')+'만':String(n);
+function updateCoins(){const b=$('#shopBtn');if(b)b.innerHTML='상점 · '+COIN+' '+fmtCoins(SAVE.coins)}
 
 /* ---------- audio ---------- */
 let ac=null;
@@ -332,12 +346,18 @@ const TOUCH=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
 const PORTRAIT_Q='(orientation:portrait) and (max-width:900px)';
 const canvas=$('#c'); let ctx=canvas.getContext('2d');
 let rotWant=false;
-function applyRot(){if(document.documentElement)document.documentElement.classList.toggle('rot',rotWant)}
+let rotApplied=false;
+function applyRot(){const el=document.documentElement; if(!el||rotApplied===rotWant)return; rotApplied=rotWant; el.classList.toggle('rot',rotWant); fit()} // re-measure right away; a late refit would leave the HUD where the old layout put it
+// The 960x540 world is scaled to fit and centred; the canvas itself fills the stage, so extra room is just background.
+const VIEW={s:1,ox:0,oy:0,x0:0,y0:0,x1:W,y1:H,cw:0,ch:0,dpr:0};
 function fit(){
   applyRot();
-  const w=canvas.offsetWidth||W, k=Math.max(1,Math.min(3,w/W*(window.devicePixelRatio||1)));
-  canvas.width=Math.round(W*k); canvas.height=Math.round(H*k); ctx.setTransform(k,0,0,k,0,0);
-  document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=TOUCH?Math.max(.82,Math.min(1,w/W+.15)):Math.max(1,Math.min(1.9,w/W))});
+  const cw=canvas.offsetWidth||W, ch=canvas.offsetHeight||H, s=Math.min(cw/W,ch/H);
+  const k=Math.max(1,Math.min(3,s*(window.devicePixelRatio||1))), q=k/s;
+  const ox=(cw-W*s)/2, oy=(ch-H*s)/2;
+  Object.assign(VIEW,{s,ox,oy,x0:-ox/s,y0:-oy/s,x1:(cw-ox)/s,y1:(ch-oy)/s,cw,ch,dpr:window.devicePixelRatio||1});
+  canvas.width=Math.round(cw*q); canvas.height=Math.round(ch*q); ctx.setTransform(k,0,0,k,ox*q,oy*q);
+  document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=TOUCH?Math.max(.82,Math.min(1,s+.15)):Math.max(1,Math.min(1.9,s))});
 }
 fit(); window.addEventListener('resize',fit); window.addEventListener('orientationchange',()=>setTimeout(fit,150));
 if(window.ResizeObserver)new ResizeObserver(()=>fit()).observe(canvas);
@@ -364,9 +384,9 @@ function setMouse(e){
   const r=canvas.getBoundingClientRect();
   if(document.documentElement.classList.contains('rot')&&window.matchMedia&&matchMedia(PORTRAIT_Q).matches){
     const cx=r.left+r.width/2, cy=r.top+r.height/2, w=canvas.offsetWidth, h=canvas.offsetHeight;
-    mouse.x=((cy-e.clientY)+w/2)*W/w; mouse.y=((e.clientX-cx)+h/2)*H/h; return;
+    mouse.x=((cy-e.clientY)+w/2-VIEW.ox)/VIEW.s; mouse.y=((e.clientX-cx)+h/2-VIEW.oy)/VIEW.s; return;
   }
-  mouse.x=(e.clientX-r.left)*W/r.width;mouse.y=(e.clientY-r.top)*H/r.height}
+  mouse.x=(e.clientX-r.left-VIEW.ox)/VIEW.s;mouse.y=(e.clientY-r.top-VIEW.oy)/VIEW.s}
 canvas.addEventListener('pointerdown',e=>{initAudio();setMouse(e);down=true;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
 canvas.addEventListener('pointermove',setMouse);
 ['pointerup','pointercancel'].forEach(t=>canvas.addEventListener(t,()=>down=false));
@@ -454,6 +474,22 @@ function update(dt){
   const thr=[46,22,-1][G.type];
   if(G.type<2&&G.t>2&&G.R<=thr)return finish('aisnap');
 }
+// Result lines for a manual snap, by how much was eaten (mm). Several lines per tier so the same score reads differently each time.
+const SNAP_ZERO_TITLES=['0.0mm에서 똑!','한 입도 안 먹고 똑','시작하자마자 똑','입도 안 대고 똑'];
+const SNAP_LINES={
+  zero:['아무것도 먹지 않았다. 빼빼로는 아무 일도 없었다는 듯 부러졌다.','0.0mm. 기록은 없지만 결단력은 인정한다.','시작 버튼을 누른 손가락이 가장 놀랐을 것이다.','먹지 않고 끊는 것도 하나의 전략이다. 점수는 0이다.','빼빼로 입장에서는 영문도 모르고 두 동강 났다.','AI는 아직 입도 안 열었다. 당신이 먼저 끊었다.','이걸 기록이라고 불러야 할지 철학적 질문이 남는다.','다이어트 중이신가요. 빼빼로는 무사하지 않았습니다.','입을 열기도 전에 끝났다. 가장 빠른 판이었다.','먹은 길이 0.0mm. 가위만 일을 했다.','빼빼로는 자기가 왜 부러졌는지 아직 모른다.','조심성이 지나쳐서 시작이 곧 끝이 되었다.','이것은 도전이 아니라 시위에 가깝다.'],
+  tiny:['한 입 먹고 바로 끊었다. 맛만 본 셈이다.','겨우 입에 댔다. 빼빼로도 아직 상황 파악 중이다.','이 정도면 먹었다고 하기엔 민망하다.','겁이 났다면 정상이다. 그래도 점수는 정직하다.','코팅 한 겹 먹고 퇴근하셨다.','한 입이라고 부르기엔 작지만 입은 입이다.','빼빼로 끝만 살짝 맛봤다. 예의는 지켰다.','아직 몸 풀기 단계에서 끊으셨다.','먹은 것보다 고민한 시간이 길었을 것이다.','맛보기 서비스까지만 이용하셨다.'],
+  low:['조금 먹었다. 조금만 먹었다는 점에서 일관적이다.','간식 한 입 수준이다. 점심시간 전에 끊은 느낌이다.','신중한 건지 소심한 건지 빼빼로도 모르겠다고 한다.','안전하게 끊었다. 안전은 점수를 주지 않는다.','이 길이면 입가심이다. 본식은 다음 기회에.','입이 풀리기 시작할 때쯤 끊었다.','슬슬 맛이 나려던 참에 멈췄다.','용기 게이지가 3분의 1쯤 찼다.','이 정도면 손해는 안 봤다. 이득도 안 봤다.','무난하다. 무난함이 가장 오래 산다.'],
+  mid:['꽤 먹었다. 빼빼로가 슬슬 불안해하기 시작했다.','중간 정도의 용기다. 중간 정도의 점수가 따라왔다.','나쁘지 않다. 딱 평범하게 용감했다.','AI의 입술이 아직 멀리 있다고 믿은 구간이다.','계산적으로 끊었다. 심장은 계산 안 하고 뛰었다.','이제 빼빼로가 반쯤은 당신 편이다.','꽤 먹었다. 이제부터는 눈치 싸움이다.','점수는 적당하고 심장은 부적당하게 뛴다.','입이 빨랐다기보다 손이 신중했다.','욕심과 이성이 팽팽하게 맞선 지점이다.'],
+  high:['제법이다. 빼빼로의 절반 가까이가 사라졌다.','여기서 끊는 사람은 용기와 겁을 반반 가진 사람이다.','점수판에 이름을 올릴 만한 길이다. 올릴 수 있다면.','입술은 이미 가깝다. 손가락은 아슬아슬하게 빨랐다.','이만큼 먹었으면 반은 성공이다. 나머지 반은 욕심이다.','확실히 먹을 줄 아는 입이다.','여기까지 오면 끊는 것도 용기, 더 먹는 것도 용기다.','빼빼로가 점점 한쪽으로 쏠려 보인다.','이쯤에서 박수 한 번 받아도 된다.','AI의 표정이 슬슬 굳는 길이다.'],
+  great:['대단하다. 빼빼로가 짧아진 것을 모두가 알아챘다.','이쯤 되면 AI도 긴장한다. 눈 색이 바뀔 틈도 없었다.','거의 다 먹었다. 이 정도면 입이 아니라 청소기다.','심장 박동이 빼빼로 길이를 앞질렀다.','이 정도면 빼빼로 업계에서 소문이 났을 것이다.','빼빼로가 짧아져서 AI가 놀란 눈치다.','이만큼 먹은 건 자랑해도 된다. 시끄럽게만 하지 마라.','입술까지 몇 밀리 남지 않은 위험한 길이다.','손가락이 살짝 떨렸지만 끊는 건 정확했다.','먹방 대회에서도 통할 길이다.'],
+  legend:['전설이다. 빼빼로가 거의 남지 않았다.','입술이 닿기 직전이었다. 이건 용기가 아니라 도박이다.','기록 갱신 냄새가 난다. 손에 땀이 난다.','이만큼 먹고 살아남은 사람은 드물다. 혹은 처음이다.','빼빼로 한 개로 이만한 서사를 만들다니.','빼빼로 입장에서는 거의 완식이다.','이 기록은 손이 아니라 담력이 만들었다.','AI 입술과의 거리가 휴대폰 두께 수준이었다.','이쯤 되면 빼빼로도 박수를 쳤을 것이다. 부러지면서.','점수판이 떨고 있다.'],
+  close:['남은 20mm 이하 보너스 +15%. 심장이 먼저 부러질 뻔했다.','손끝이 먼저 알았다. 보너스 +15%.','입술 앞에서 멈췄다. 용기에 +15%를 드립니다.','이 정도 아슬아슬함은 +15%의 가치가 있다.','숨을 참고 끊었다. 보너스 +15% 지급 완료.','입술 코앞에서 끊었다. 이 정도면 심장이 두 개다.','마지막 순간의 침착함에 +15%를 드린다.','1초만 늦었어도 다른 결말이었다. 보너스 +15%.','가위가 숨을 참았다. 보너스 +15%.','아슬아슬함의 정석이다. 보너스 +15%.']
+};
+const SNAP_TITLES={normal:['깔끔하게 똑!','한 번에 똑!','타이밍 좋게 똑!','소리 좋게 똑!'],close:['아슬아슬하게 똑!','입술 코앞에서 똑!','숨 참고 똑!','1초 차이로 똑!']};
+const lastPick={};
+function pick(a,key){let i;do{i=Math.floor(Math.random()*a.length)}while(a.length>1&&i===lastPick[key]);lastPick[key]=i;return a[i]} // never the same line twice in a row
+function snapTier(mm,close){return close?'close':mm<.05?'zero':mm<5?'tiny':mm<20?'low':mm<50?'mid':mm<90?'high':mm<140?'great':'legend'}
 const KISS_LINES=[
   ['AI는 끝까지 물러나려 했다. 당신은 끝까지 다가갔다. 이 사건은 기록으로 남는다.','AI의 진술: "저는 분명히 뒤로 물러났습니다." 증거는 방금 전 입술이다.','겁쟁이 AI는 아직 상황을 처리하고 있다. 잠시만 기다려 주세요.'],
   ['AI 내부 보고서에 "인간이 먼저 다가옴"이라고 기록되었다. 정정 요청은 기각되었다.','사고 경위: 빼빼로 한 개, 입술 두 쌍, 계산 오류 한 번. 재발 방지 대책을 제출하세요.','AI는 이 일을 학습 데이터에 넣지 않기로 했다. 그만큼 충격이 컸다.'],
@@ -466,7 +502,7 @@ function finish(kind){
   const mm=G.sp*MM, close=G.R*MM<=20, advance=selectedMode==='continuous'&&kind==='snap'&&close;
   let score=0,title='',msg='';
   if(kind==='bank'){title='오늘은 여기까지!';msg='이전에 확보한 점수를 확정했습니다.'}
-  if(kind==='snap'){score=mm*(close?1.15:1);title=advance?'성공! 다음 빼빼로!':close?'아슬아슬하게 똑!':'깔끔하게 똑!';msg=close?'남은 20mm 이하 보너스 +15%. 심장이 먼저 부러질 뻔했다.':'더 먹을 수 있었는지는 모르는 게 약이다.'}
+  if(kind==='snap'){const tier=snapTier(mm,close);score=mm*(close?1.15:1);title=advance?'성공! 다음 빼빼로!':tier==='zero'?pick(SNAP_ZERO_TITLES,'zt'):pick(close?SNAP_TITLES.close:SNAP_TITLES.normal,close?'ct':'nt');msg=pick(SNAP_LINES[tier],tier)}
   if(kind==='aisnap'){score=0;title='AI가 먼저 끊었다';msg='AI가 한 발 빨랐다. 눈 색이 경고하고 있었다. 0점.'}
   if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열 관리 실패. 빼빼로는 당신의 급한 성격을 기억할 것이다. 점수 절반.'}
   if(kind==='kiss'){score=0;title='뽀뽀 사고 접수';const pool=KISS_LINES[G.type];msg=pool[Math.floor(Math.random()*pool.length)]}
@@ -558,7 +594,7 @@ const grain=document.createElement('canvas'); grain.width=W; grain.height=H;
 (function(){const g=grain.getContext('2d');g.fillStyle='rgba(17,17,17,.07)';for(let i=0;i<2600;i++)g.fillRect(Math.random()*W,Math.random()*H,1.3,1.3)})();
 
 function drawBG(){
-  ctx.fillStyle=PAPER; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=PAPER; ctx.fillRect(VIEW.x0-1,VIEW.y0-1,VIEW.x1-VIEW.x0+2,VIEW.y1-VIEW.y0+2);
   ctx.save(); ctx.globalCompositeOperation='multiply';
   ctx.fillStyle=PK; ctx.beginPath(); ctx.moveTo(860,452); ctx.lineTo(920,452); ctx.lineTo(890,400); ctx.closePath(); ctx.fill();
   ctx.fillStyle=BL; circ(60,484,16); ctx.fill();
@@ -570,7 +606,7 @@ function drawBG(){
   ctx.beginPath(); for(let i=0;i<6;i++){const x=110+i*18; ctx.lineTo(x,470+(i%2?-9:9));} ctx.stroke();
   ctx.fillStyle=INK; for(let r=0;r<3;r++)for(let c=0;c<4;c++){circ(24+c*12,404+r*12,2);ctx.fill()}
   for(let r=0;r<3;r++)for(let c=0;c<4;c++){circ(880+c*12,150+r*12,2);ctx.fill()}
-  ctx.drawImage(grain,0,0);
+  for(let gx=Math.floor(VIEW.x0/W)*W;gx<VIEW.x1;gx+=W)for(let gy=Math.floor(VIEW.y0/H)*H;gy<VIEW.y1;gy+=H)ctx.drawImage(grain,gx,gy);
 }
 function sticker(txt,x,y,size,fill,rot,txtCol=INK){
   ctx.save(); ctx.translate(x,y); ctx.rotate(rot||0); ctx.font='400 '+size+'px '+DISP;
@@ -787,17 +823,6 @@ const AIHEADP=()=>rrp(-106,-52,106,104,24), AISNOUTP=()=>rrp(-18,-24,30,48,10);
 function worldToLocal(wx,wy,ang,flipY){
   const c=Math.cos(-ang),sn=Math.sin(-ang); let x=wx*c-wy*sn, y=wx*sn+wy*c; if(flipY)y=-y; return [x,y];
 }
-// Lips: two-tone, wrinkles, gloss. They share the face's riso outline, hidden where they meet the face.
-function drawLips(o,c,fOff,rOff,face){
-  // one flat pursed "o": a solid ellipse + riso ring, nothing else
-  const g=o*.6, rx=7, ry=8.5+g, cx=7, lipPath=()=>{ctx.moveTo(cx+rx,0);ctx.ellipse(cx,0,rx,ry,0,0,Math.PI*2)};
-  ctx.save(); ctx.translate(fOff[0],fOff[1]); ctx.beginPath(); lipPath(); ctx.fillStyle=c.lo; ctx.fill(); ctx.restore();
-  ctx.save(); ctx.globalCompositeOperation='multiply';
-  for(const f of face)clipOutside(f);
-  ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=c.ring; ctx.lineWidth=5; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
-  if(g>.8){ctx.fillStyle=c.inner; ell(cx,0,3.4,Math.min(3.2,g*.5)); ctx.fill()}
-}
-// accessories were drawn for the old r54 head at x=-50; map them onto the smaller circle
 function playerInk(open,stress,me,alpha=0){ctx.save();ctx.translate(4-HEAD_R,0);ctx.scale(HEAD_R/54,HEAD_R/54);ctx.translate(50,0);accessory(me);ctx.restore()}
 function inkPlayer(open){inPlayer(()=>playerInk(open,G.stress,SAVE.eq.me,G.alpha))}
 function inkAI(open){
@@ -805,7 +830,6 @@ function inkAI(open){
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
   ctx.fillStyle=INK; rr(-98,-40,84,80,14); ctx.fill();
   ctx.fillStyle=flash?PAPER:EYE[G.type]; rr(-84,-26,40,16,8); ctx.fill(); rr(-84,6,40,16,8); ctx.fill();
-  {const off=2+G.stress*.12; drawLips(open*9,{lo:BL,up:'#0a5d99',ring:PK,line:'rgba(255,255,255,.85)',wrinkle:'rgba(255,255,255,.3)',inner:INK},worldToLocal(off,off*.8,G.th+Math.PI,true),[0,0],[AIHEADP,AISNOUTP])}
   ctx.restore();
   if(warn)sticker('!',G.A.x+Math.cos(G.th)*-50+50,G.A.y-92,28,YE,-.1);
 }
@@ -824,7 +848,7 @@ function drawScene(){
 }
 function drawGauge(){
   const gs=TOUCH?1.25:1; ctx.save(); ctx.translate(W/2,0); ctx.scale(gs,gs); ctx.translate(-W/2,0);
-  const cx=W/2,y=44,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
+  const cx=W/2,y=VIEW.y0+44,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
   ctx.fillStyle=INK; rr(cx-w-14+4,y-18+4,2*w+28,36,4); ctx.fill();
   ctx.fillStyle=PAPER; rr(cx-w-14,y-18,2*w+28,36,4); ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=3; ctx.stroke();
   ctx.fillStyle=SKY; ctx.fillRect(sx(-TOL),y-9,sx(TOL)-sx(-TOL),18);
@@ -838,15 +862,16 @@ function drawGauge(){
   ctx.restore();
 }
 function drawHUD(){
-  const LB=TOUCH?19:13, NS=TOUCH?46:40, NY=TOUCH?80:72, m=TOUCH?28:24;
-  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',m,TOUCH?34:30);
-  rtext((G.sp*MM).toFixed(1)+' mm',m,NY,NS,'left');
+  // anchored to the visible area (VIEW), so on big windows the numbers sit at the real edges and the crack bar at the real bottom
+  const LB=TOUCH?19:13, NS=TOUCH?46:40, NY=TOUCH?80:72, m=TOUCH?28:24, L=VIEW.x0+m, R=VIEW.x1-m, T=VIEW.y0, B=VIEW.y1;
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',L,T+(TOUCH?34:30));
+  rtext((G.sp*MM).toFixed(1)+' mm',L,T+NY,NS,'left');
   const rm=G.R*MM;
-  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',W-m,TOUCH?34:30);
-  rtext(rm.toFixed(1)+' mm',W-m,NY,NS,'right',rm<20?RED:INK);
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',R,T+(TOUCH?34:30));
+  rtext(rm.toFixed(1)+' mm',R,T+NY,NS,'right',rm<20?RED:INK);
   drawGauge();
-  const ss=TOUCH?1.3:1; ctx.save(); ctx.translate(W/2,H); ctx.scale(ss,ss); ctx.translate(-W/2,-H);
-  const bw=320,bx=W/2-bw/2,by=H-38;
+  const ss=TOUCH?1.3:1; ctx.save(); ctx.translate(W/2,B); ctx.scale(ss,ss); ctx.translate(-W/2,-B);
+  const bw=320,bx=W/2-bw/2,by=B-38;
   ctx.fillStyle=INK; rr(bx+3,by+3,bw,14,2); ctx.fill();
   ctx.fillStyle=PAPER; rr(bx,by,bw,14,2); ctx.fill();
   const c=G.stress>75?(Math.floor(G.t*10)%2?RED:PK):G.stress>40?YE:SKY;
@@ -868,6 +893,8 @@ function kissMark(x,y,size,rot,a){
   ctx.restore();
 }
 function render(){
+  // self-healing: if the canvas size, zoom or rotation changed since the last fit (a missed resize event), re-measure before drawing
+  if(canvas.offsetWidth!==VIEW.cw||canvas.offsetHeight!==VIEW.ch||(window.devicePixelRatio||1)!==VIEW.dpr)fit();
   ctx.save(); drawBG();
   if(G.shake)ctx.translate((Math.random()-.5)*G.shake*2,(Math.random()-.5)*G.shake*2);
   drawScene();
@@ -875,7 +902,7 @@ function render(){
   ctx.globalAlpha=1; ctx.font='28px system-ui'; ctx.textAlign='center';
   for(const h of G.hearts)kissMark(h.x,h.y,h.sz||44,h.r||0,clamp(h.life,0,1));
   ctx.globalAlpha=1; ctx.restore();
-  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';if(selectedMode==='continuous')ctx.fillText(runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm',TOUCH?28:24,TOUCH?114:105);}
+  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';if(selectedMode==='continuous')ctx.fillText(runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm',VIEW.x0+(TOUCH?28:24),VIEW.y0+(TOUCH?114:105));}
   if(state==='play'&&G.t<1.2)sticker(TOUCH?'꾹 누르고 드래그!':'각도를 맞춰라!',W/2,H/2+130,TOUCH?30:34,YE,-.03);
   if(state==='over'&&G.end.t<1.1)sticker(G.end.title,W/2,H/2-120,38,YE,-.04);
 }
