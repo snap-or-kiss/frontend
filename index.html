@@ -630,27 +630,60 @@ const PEPERO_SKINS=[
 ];
 const TOPS=Array.from({length:10},(_,i)=>({s:50+i*64,y:i%2?5:-5,r:i*1.7}));
 function skinOf(id){return PEPERO_SKINS.find(k=>k.id===id)||PEPERO_SKINS[0]}
-function wavyBand(a,b,hw,amp,woff){
-  ctx.beginPath();
+function wavyPath(a,b,hw,amp,woff){
   for(let x=a;x<=b+.1;x+=4){const y=hw+amp*Math.sin((x+woff)*.085); x===a?ctx.moveTo(x,-y):ctx.lineTo(x,-y)}
   for(let x=b;x>=a-.1;x-=4){const y=hw+amp*Math.sin((x+woff)*.085); ctx.lineTo(x,y)}
   ctx.closePath();
 }
-function topping(type,x,y,rot){
-  ctx.save(); ctx.translate(x,y); ctx.scale(.72,.72); ctx.lineWidth=2.2; ctx.strokeStyle=OUT; ctx.lineJoin='round';
+function wavyBand(a,b,hw,amp,woff){ctx.beginPath();wavyPath(a,b,hw,amp,woff)}
+// Toppings are drawn twice by onCoat: flat fills inside the coating, outlined only where they poke out of it.
+function topping(type,x,y,rot,ol){
+  ctx.save(); ctx.translate(x,y); ctx.scale(1.15,1.15); ctx.lineWidth=2; ctx.strokeStyle=OUT; ctx.lineJoin='round'; ctx.lineCap='round';
+  const S=()=>{if(ol)ctx.stroke()};
   if(type==='cat'){
-    ctx.fillStyle='#efe6c8'; ctx.beginPath(); ctx.moveTo(-6,-3);ctx.lineTo(-6,-8);ctx.lineTo(-2,-5);ctx.lineTo(2,-5);ctx.lineTo(6,-8);ctx.lineTo(6,-3);ctx.closePath();ctx.fill();ctx.stroke();
-    rr(-7,-5,14,11,4); ctx.fill(); ctx.stroke(); ctx.fillStyle=OUT; circ(-2.5,0,1);ctx.fill();circ(2.5,0,1);ctx.fill();
+    ctx.fillStyle='#efe6c8';
+    ctx.beginPath();ctx.moveTo(-8,-1);ctx.lineTo(-7.4,-10.5);ctx.lineTo(-2,-6);ctx.closePath();ctx.fill();S();
+    ctx.beginPath();ctx.moveTo(8,-1);ctx.lineTo(7.4,-10.5);ctx.lineTo(2,-6);ctx.closePath();ctx.fill();S();
+    rr(-9.5,-7,19,15.5,7);ctx.fill();S();
+    ctx.fillStyle='#f5b5c0';
+    ctx.beginPath();ctx.moveTo(-6.6,-4);ctx.lineTo(-6.3,-8);ctx.lineTo(-3.6,-5.6);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(6.6,-4);ctx.lineTo(6.3,-8);ctx.lineTo(3.6,-5.6);ctx.closePath();ctx.fill();
+    ctx.fillStyle=OUT;circ(-3.8,-.5,1.4);ctx.fill();circ(3.8,-.5,1.4);ctx.fill();
+    ctx.fillStyle='#ff8fa3';ell(0,2.2,1.5,1);ctx.fill();
+    ctx.strokeStyle='rgba(43,23,16,.7)';ctx.lineWidth=.9;
+    ctx.beginPath();ctx.moveTo(-2.6,4.4);ctx.quadraticCurveTo(-1.3,5.8,0,4.2);ctx.quadraticCurveTo(1.3,5.8,2.6,4.4);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-9,1);ctx.lineTo(-13,.2);ctx.moveTo(-9,3.4);ctx.lineTo(-12.6,4.6);ctx.moveTo(9,1);ctx.lineTo(13,.2);ctx.moveTo(9,3.4);ctx.lineTo(12.6,4.6);ctx.stroke();
   }else if(type==='banana'){
-    ctx.rotate(rot); ctx.fillStyle='#ffc75a'; ctx.beginPath(); ctx.arc(0,0,8,-.2*Math.PI,.95*Math.PI); ctx.arc(2,-1,6,.95*Math.PI,-.2*Math.PI,true); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#ffd75e';circ(0,0,9.5);ctx.fill();S();
+    ctx.fillStyle='#fff1b8';circ(0,0,6.6);ctx.fill();
+    ctx.fillStyle='#d9a441';circ(0,0,1.4);ctx.fill();
+    for(let k=0;k<6;k++){const t=k*Math.PI/3+.3;circ(Math.cos(t)*3.3,Math.sin(t)*3.3,.7);ctx.fill()}
   }else if(type==='apple'){
-    ctx.fillStyle='#e8312f'; circ(0,1,7); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle=OUT; ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(1,-9); ctx.stroke(); ctx.fillStyle='#59c13a'; ell(4,-7,3,1.6); ctx.fill();
+    ctx.fillStyle='#e8312f';
+    ctx.beginPath();ctx.moveTo(0,-5);ctx.bezierCurveTo(-3,-9,-11,-6,-9.5,2);ctx.bezierCurveTo(-8.5,9,-3,11,0,9);ctx.bezierCurveTo(3,11,8.5,9,9.5,2);ctx.bezierCurveTo(11,-6,3,-9,0,-5);ctx.closePath();ctx.fill();S();
+    ctx.strokeStyle='#6b3a22';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(0,-5);ctx.quadraticCurveTo(.5,-8,2,-10.5);ctx.stroke();
+    ctx.fillStyle='#59c13a';ctx.beginPath();ctx.ellipse(5,-9,4,2,-.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#3b8a24';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(2.2,-8.2);ctx.lineTo(7.6,-10);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.7)';ell(-4.8,-1.4,1.6,3);ctx.fill();
   }else if(type==='cookie'){
-    ctx.fillStyle='#a2673f'; circ(0,0,8.5); ctx.fill(); ctx.stroke(); ctx.fillStyle='#6b3a22';
-    circ(-3,-2,1);ctx.fill();circ(2,2,1);ctx.fill();circ(3,-3,1);ctx.fill();circ(-2,3,1);ctx.fill();
+    ctx.fillStyle='#b9824f';ctx.beginPath();
+    for(let k=0;k<=16;k++){const t=k/16*Math.PI*2,r=9.6+(k%2?.9:0);k?ctx.lineTo(Math.cos(t)*r,Math.sin(t)*r):ctx.moveTo(r,0)}
+    ctx.closePath();ctx.fill();S();
+    ctx.fillStyle='#4d2616';
+    for(const [cx,cy,r] of [[-3.6,-3.2,1.7],[3.2,-4,1.3],[4.4,2.4,1.8],[-1,3.6,1.5],[-5.2,2.4,1.1],[.6,-.4,1.2]]){circ(cx,cy,r);ctx.fill()}
   }
   ctx.restore();
+}
+// draw fn(ol) inside the coating (no outline), then again only outside it (with outline)
+function onCoat(a,c1,woff,fn){
+  ctx.save(); wavyBand(a,c1,13,1.8,woff); ctx.clip(); fn(false); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(-80,-80,L+160,160); wavyPath(a,c1,13,1.8,woff); ctx.clip('evenodd'); fn(true); ctx.restore();
+}
+function almond(ol){
+  ctx.fillStyle='#d8b078'; ell(0,0,7,4); ctx.fill();
+  if(ol){ctx.strokeStyle='#8f5a3a';ctx.lineWidth=1.4;ctx.stroke()}
+  ctx.strokeStyle='rgba(143,90,58,.55)';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(-4.5,.4);ctx.quadraticCurveTo(0,-1.4,4.5,.4);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.55)';ell(-2,-1.4,2.2,.9);ctx.fill();
 }
 function paintStickPart(a,b,hs,woff,sk){
   ctx.lineJoin='round'; ctx.lineWidth=2.2; ctx.strokeStyle=OUT;
@@ -668,18 +701,17 @@ function paintStickPart(a,b,hs,woff,sk){
     wavyBand(a,c1,13,1.8,woff); ctx.fill(); ctx.stroke();
     if(hs>a&&hs<b){ctx.fillStyle=sk.coat[1];for(let k=0;k<3;k++){ell(hs-1,-9+k*9,6,5);ctx.fill();ctx.stroke()}}
     ctx.fillStyle='rgba(255,255,255,.28)'; rr(a+6,-9,Math.max(0,c1-a-14),3,1.5); ctx.fill();
-    // toppings are clipped to the coating, so nothing sticks out past the stick
-    ctx.save(); wavyBand(a,c1,11.8,1.8,woff); ctx.clip();
-    if(sk.top==='sprinkle'||sk.top==='almond'){
-      SPR.forEach((sp,i)=>{const x=sp.s-woff; if(x>a+8&&x<c1-8){
-        ctx.save();ctx.translate(x,sp.y*.85);ctx.rotate(sp.s*.7);
-        if(sk.top==='sprinkle'){ctx.fillStyle=SPK[i%4];rr(-3.6,-1.5,7.2,3,1.5);ctx.fill()}
-        else if(i%2===0){ctx.fillStyle='#d8b078';ctx.strokeStyle='#8f5a3a';ctx.lineWidth=1;ell(0,0,5,2.8);ctx.fill();ctx.stroke()}
-        ctx.restore()}});
-    }else{
-      for(const t of TOPS){const x=t.s-woff; if(x>a+14&&x<c1-14)topping(sk.top,x,t.y*.7,t.r)}
-    }
-    ctx.restore();
+    onCoat(a,c1,woff,ol=>{
+      if(sk.top==='sprinkle'||sk.top==='almond'){
+        SPR.forEach((sp,i)=>{const x=sp.s-woff; if(x>a+8&&x<c1-8){
+          ctx.save();ctx.translate(x,sp.y*.85);ctx.rotate(sp.s*.7);
+          if(sk.top==='sprinkle'){ctx.fillStyle=SPK[i%4];rr(-3.6,-1.5,7.2,3,1.5);ctx.fill()}
+          else if(i%2===0)almond(ol);
+          ctx.restore()}});
+      }else{
+        for(const t of TOPS){const x=t.s-woff; if(x>a+14&&x<c1-14)topping(sk.top,x,t.y*1.5,t.r,ol)}
+      }
+    });
   }
   for(const x of [a,b]){
     const choc=x<hs;
