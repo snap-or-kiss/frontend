@@ -45,8 +45,8 @@ button{font:inherit;cursor:pointer;border:3px solid var(--ink);padding:12px 18px
 button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
 button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
 button.ghost{background:var(--paper)}
-.row{display:flex;gap:10px}
-.row button{flex:1}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row button{flex:1 1 0;min-width:max-content;white-space:nowrap}
 .lb h3{margin:0 0 8px;font-size:14px;font-weight:800;background:var(--ink);color:var(--yellow);display:inline-block;padding:3px 10px}
 .lb ol{margin:0;padding:0;list-style:none;font-size:14px}
 .lb li{display:flex;gap:8px;padding:8px 10px;border-bottom:2px dotted rgba(17,17,17,.35)}
