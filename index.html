@@ -597,11 +597,11 @@ function stickParts(){
 }
 function inStick(p,fn){ctx.save();ctx.translate(G.P.x+p.ox,G.P.y+p.oy);ctx.rotate(G.th+p.rot);fn();ctx.restore()}
 function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addPath();ctx.clip('evenodd')}
-const SKIN='#ffe3cf', SKIN_SH='#f6cdb0';
+const SKIN='#ffe3cf', SKIN_SH='#f6cdb0', SKIN_LINE='#d8a583'; // outline: a slightly deeper skin tone
 function playerLayer(pass,col){
   // restart: a plain circle. pink fill, thin blue ring.
   if(pass==='pink'){ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle=SKIN;ctx.beginPath();HEADP();ctx.fill();ctx.restore()} // opaque: background must not show through
-  else{ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.beginPath();HEADP();ctx.stroke()}
+  else{ctx.save();ctx.globalCompositeOperation='source-over';ctx.strokeStyle=SKIN_LINE;ctx.lineWidth=.6;ctx.beginPath();HEADP();ctx.stroke();ctx.restore()}
 }
 function inPlayer(fn){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);fn();ctx.restore()}
 function layerPlayer(pass,col){inPlayer(()=>playerLayer(pass,col))}
