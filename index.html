@@ -91,9 +91,20 @@ button.ghost{background:var(--paper)}
 .touch button{touch-action:none}
 .touch #snap{position:fixed;width:auto;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));padding:18px 22px;font-size:20px;z-index:50}
 .touch #cashOut{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;width:auto;padding:10px 14px;font-size:13px}
-#rotate{position:fixed;inset:0;z-index:200;background:var(--yellow);color:var(--ink);align-items:center;justify-content:center;text-align:center;
-  font-family:var(--disp);font-size:30px;line-height:1.35;padding:24px}
-#rotate small{display:block;margin-top:14px;font-family:system-ui,sans-serif;font-weight:700;font-size:14px}
+#rotate{position:fixed;inset:0;z-index:200;background:var(--paper);background-image:radial-gradient(rgba(17,17,17,.14) 1.5px,transparent 1.6px);background-size:16px 16px;
+  color:var(--ink);align-items:center;justify-content:center;text-align:center;padding:24px;overflow:hidden}
+#rotate .rz{position:absolute;inset:0;width:100%;height:100%}
+#rotate .rc{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px}
+#rotate .phone{width:92px;height:164px;border:5px solid var(--ink);border-radius:18px;background:var(--yellow);box-shadow:7px 7px 0 var(--pink);
+  display:flex;align-items:center;justify-content:center;margin-bottom:34px;animation:rot 2.8s ease-in-out infinite}
+#rotate .screen{width:68px;height:128px;border-radius:9px;background:var(--paper);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center}
+#rotate .stick{display:block;width:54px;height:15px;border:3px solid var(--ink);border-radius:8px;background:#52281a;position:relative;overflow:hidden}
+#rotate .stick i{position:absolute;right:-2px;top:-2px;bottom:-2px;width:17px;background:#f1d9b0;border-left:3px solid var(--ink)}
+#rotate h2{margin:0;font-family:var(--disp);font-weight:400;font-size:44px;line-height:1.15;text-shadow:3px 3px 0 var(--pink);word-break:keep-all}
+#rotate .tag{margin:6px 0 0;padding:8px 14px;background:var(--yellow);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);font-weight:800;font-size:15px;transform:rotate(-2deg);word-break:keep-all}
+#rotate .sub{margin:4px 0 0;font-weight:700;font-size:13px;color:var(--muted);word-break:keep-all}
+@keyframes rot{0%,18%{transform:rotate(0)}52%,82%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){#rotate .phone{animation:none;transform:rotate(-90deg)}}
 @media (orientation:portrait){
   .touch.playing #rotate{display:flex}
   .touch #overlay{position:fixed;z-index:100;background:var(--paper);padding:12px}
@@ -149,7 +160,21 @@ button.ghost{background:var(--paper)}
   </div>
 </div>
 <button id="snap">✂️ 똑! 부러뜨리기 (S)</button>
-<div id="rotate" role="alert"><div>📱 ↻<br>가로로 돌려서<br>플레이하세요<small>돌리는 동안 게임은 멈춰 있습니다</small></div></div>
+<div id="rotate" role="alert">
+  <svg class="rz" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <polygon points="30,120 90,120 60,66" fill="#ff48b0" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+    <circle cx="340" cy="150" r="30" fill="#0078bf" stroke="#111" stroke-width="4"/>
+    <path d="M40 700 l20 -22 l20 22 l20 -22 l20 22 l20 -22 l20 22" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="290,730 350,730 320,680" fill="#ffe14d" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+    <g fill="#111"><circle cx="46" cy="300" r="3"/><circle cx="62" cy="300" r="3"/><circle cx="78" cy="300" r="3"/><circle cx="46" cy="316" r="3"/><circle cx="62" cy="316" r="3"/><circle cx="78" cy="316" r="3"/></g>
+  </svg>
+  <div class="rc">
+    <div class="phone"><div class="screen"><span class="stick"><i></i></span></div></div>
+    <h2>가로로<br>돌려주세요!</h2>
+    <p class="tag">돌리는 동안 게임은 멈춰 있어요</p>
+    <p class="sub">빼빼로는 옆으로 먹는 거라서요</p>
+  </div>
+</div>
 <div class="hint">마우스 이동 = 각도 · 클릭 유지 / Space = 먹기 · S = 부러뜨리기 (뽀뽀는 선택 사항이 아닙니다)</div>
 
 <script>
