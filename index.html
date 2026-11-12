@@ -710,7 +710,7 @@ function render(){
   ctx.globalAlpha=1; ctx.font='28px system-ui'; ctx.textAlign='center';
   for(const h of G.hearts){ctx.globalAlpha=clamp(h.life,0,1);ctx.fillText('💋',h.x,h.y)}
   ctx.globalAlpha=1; ctx.restore();
-  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';ctx.fillText(selectedMode==='continuous'?runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm':'기본 모드 · 한 개로 승부',TOUCH?28:24,TOUCH?114:105);}
+  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';if(selectedMode==='continuous')ctx.fillText(runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm',TOUCH?28:24,TOUCH?114:105);}
   if(state==='play'&&G.t<1.2)sticker(TOUCH?'꾹 누르고 드래그!':'각도를 맞춰라!',W/2,H/2+130,TOUCH?30:34,YE,-.03);
   if(state==='over'&&G.end.t<1.1)sticker(G.end.title,W/2,H/2-120,38,YE,-.04);
 }
