@@ -365,6 +365,11 @@ function update(dt){
   const thr=[46,22,-1][G.type];
   if(G.type<2&&G.t>2&&G.R<=thr)return finish('aisnap');
 }
+const KISS_LINES=[
+  ['AI는 끝까지 물러나려 했다. 당신은 끝까지 다가갔다. 이 사건은 기록으로 남는다.','AI의 진술: "저는 분명히 뒤로 물러났습니다." 증거는 방금 전 입술이다.','겁쟁이 AI는 아직 상황을 처리하고 있다. 잠시만 기다려 주세요.'],
+  ['AI 내부 보고서에 "인간이 먼저 다가옴"이라고 기록되었다. 정정 요청은 기각되었다.','사고 경위: 빼빼로 한 개, 입술 두 쌍, 계산 오류 한 번. 재발 방지 대책을 제출하세요.','AI는 이 일을 학습 데이터에 넣지 않기로 했다. 그만큼 충격이 컸다.'],
+  ['AI는 이 결과를 예측했고 비켜 주지 않았다. 쌍방 과실로 처리한다.','AI의 눈은 빨간색이었다. 그것은 경고였고, 동시에 청첩장이었다.','무모한 AI는 후회하지 않는다. 다만 당신의 책임은 묻겠다고 했다.']
+];
 function finish(kind){
   if(state!=='play')return;
   state='over'; down=false; setControls(false);
@@ -375,7 +380,7 @@ function finish(kind){
   if(kind==='snap'){score=mm*(close?1.15:1);title=advance?'성공! 다음 빼빼로!':close?'아슬아슬하게 똑!':'깔끔하게 똑!';msg=close?'남은 20mm 이하 보너스 +15%. 심장이 먼저 부러질 뻔했다.':'더 먹을 수 있었는지는 모르는 게 약이다.'}
   if(kind==='aisnap'){score=0;title='AI가 먼저 끊었다';msg='AI가 한 발 빨랐다. 눈 색이 경고하고 있었다. 0점.'}
   if(kind==='break'){score=mm*.5;title='빼빼로가 부러졌다…';msg='균열 관리 실패. 빼빼로는 당신의 급한 성격을 기억할 것이다. 점수 절반.'}
-  if(kind==='kiss'){score=0;title='💋 뽀뽀해버렸다';msg='0점. 이번 AI는 '+['겁쟁이','신중파','무모한 승부사'][G.type]+'였다. 로봇의 첫 키스를 가져간 기분은 어떤가요.'}
+  if(kind==='kiss'){score=0;title='💋 뽀뽀 사고 접수';const pool=KISS_LINES[G.type];msg=pool[Math.floor(Math.random()*pool.length)]}
   G.score=Math.round((runTotal+score)*10)/10; G.coins=Math.round(G.score); if(!advance&&G.coins>0){SAVE.coins+=G.coins;persist()}
   $('#cashOut').hidden=true;
   G.end={advance,kind,t:0,frac:.45+Math.random()*.1,title,msg,shown:false};
