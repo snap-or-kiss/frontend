@@ -752,27 +752,21 @@ function worldToLocal(wx,wy,ang,flipY){
 }
 // Lips: two-tone, wrinkles, gloss. They share the face's riso outline, hidden where they meet the face.
 function drawLips(o,c,fOff,rOff,face){
-  const g=o*.6, ry=14.8+g, lipPath=()=>{ctx.moveTo(16.2,0);ctx.ellipse(6,0,10.2,ry,0,0,Math.PI*2)};
+  const g=o*.6, rx=9, ry=11.5+g, cx=5.5, lipPath=()=>{ctx.moveTo(cx+rx,0);ctx.ellipse(cx,0,rx,ry,0,0,Math.PI*2)};
   ctx.save(); ctx.translate(fOff[0],fOff[1]);
   ctx.beginPath(); lipPath(); ctx.fillStyle=c.lo; ctx.fill();
-  ctx.save(); ctx.beginPath(); lipPath(); ctx.clip(); ctx.fillStyle=c.up; ctx.fillRect(-10,-30,40,30+ (g>.8?-g*.5:0)); ctx.restore();
+  ctx.save(); ctx.beginPath(); lipPath(); ctx.clip(); ctx.fillStyle=c.up; ctx.fillRect(-10,-30,40,30-(g>.8?g*.5:0)); ctx.restore();
   ctx.restore();
   ctx.save(); ctx.globalCompositeOperation='multiply';
   for(const f of face)clipOutside(f);
-  ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=c.ring; ctx.lineWidth=6; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
-  if(g>.8){ctx.fillStyle=c.inner; ell(10.5,0,4.4,Math.min(3.6,g*.5)); ctx.fill()}
+  ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=c.ring; ctx.lineWidth=5; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
+  if(g>.8){ctx.fillStyle=c.inner; ell(cx+3,0,3.6,Math.min(3.2,g*.5)); ctx.fill()}
   ctx.lineCap='round'; ctx.lineJoin='round';
-  // pursing wrinkles
-  ctx.strokeStyle=c.wrinkle; ctx.lineWidth=1.3;
-  for(const sg of [-1,1])for(const x of [8.5,12,14.8]){const y0=sg*(1.6+g*.4), y1=sg*(Math.min(ry-3,8.4+(x-8.5)*.1));ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x+.6,y1);ctx.stroke()}
-  // centre line with a small dip, like a pursed mouth
-  ctx.strokeStyle=c.line; ctx.lineWidth=2.3;
-  ctx.beginPath(); ctx.moveTo(-3.6,.4); ctx.quadraticCurveTo(3,-2.8,7,-.6); ctx.quadraticCurveTo(11,2,15.8,.2); ctx.stroke();
-  // gloss
-  ctx.strokeStyle='rgba(255,255,255,.78)'; ctx.lineWidth=2.1;
-  ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*1.12,Math.PI*1.4); ctx.stroke();
-  ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*.62,Math.PI*.8); ctx.stroke();
-  ctx.fillStyle='rgba(255,255,255,.85)'; circ(-1,-(ry-5.2),1.3); ctx.fill();
+  // small smile-shaped centre line
+  ctx.strokeStyle=c.line; ctx.lineWidth=2.2;
+  ctx.beginPath(); ctx.moveTo(-1.5,0); ctx.quadraticCurveTo(cx+3,2.6,cx+rx-1.5,0); ctx.stroke();
+  // one gloss dot
+  ctx.fillStyle='rgba(255,255,255,.85)'; circ(cx-1,-(ry-4.4),1.6); ctx.fill();
 }
 function hairPath(){
   ctx.moveTo(-106.1,18.2);
@@ -795,14 +789,10 @@ function playerInk(open,stress,me,alpha=0){
   const off=2+stress*.12;
   drawHair(worldToLocal(off,off*.8,alpha,false));
   accessory(me);
-  // eye
-  ctx.fillStyle='#fff'; ctx.strokeStyle=INK; ctx.lineWidth=2.6; ell(-27,-9,8.8,10); ctx.fill(); ctx.stroke();
-  ctx.fillStyle=HAIRD; circ(-24,-8,6.1); ctx.fill();
-  ctx.fillStyle=INK; circ(-23.4,-8,3.1); ctx.fill();
-  ctx.fillStyle='#fff'; circ(-21.6,-11,2.1); ctx.fill(); circ(-26,-5.2,1); ctx.fill();
-  ctx.strokeStyle=INK; ctx.lineWidth=3.4; ctx.lineCap='round';
-  ctx.beginPath(); ctx.ellipse(-27,-9,9.2,10.4,0,Math.PI*1.1,Math.PI*1.88); ctx.stroke();
-  ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-18.5,-15.4); ctx.lineTo(-14.6,-18.8); ctx.moveTo(-21.5,-17.7); ctx.lineTo(-19.6,-21.6); ctx.stroke();
+  // blush + simple eye: one dark oval, one highlight
+  ctx.save(); ctx.globalCompositeOperation='multiply'; ctx.fillStyle='rgba(255,107,157,.55)'; ell(-20,7,8.5,5.2); ctx.fill(); ctx.restore();
+  ctx.fillStyle=INK; ell(-27,-9,6.2,8); ctx.fill();
+  ctx.fillStyle='#fff'; circ(-25.2,-12,2.3); ctx.fill();
   if(stress>55){ctx.fillStyle=SKY;ctx.strokeStyle=INK;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
   drawLips(open*9,{lo:LIP_LO,up:LIP_UP,ring:BL,line:LIP_LINE,wrinkle:'rgba(143,58,61,.42)',inner:'#5a1f24'},[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP]);
 }
