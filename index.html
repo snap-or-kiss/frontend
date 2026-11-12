@@ -610,14 +610,6 @@ function playerLayer(pass,col){
     ctx.strokeStyle=col;ctx.lineWidth=6;
     ctx.save();clipOutside(muz);ctx.beginPath();head();ctx.stroke();ctx.restore();
     ctx.save();clipOutside(head);ctx.beginPath();muz();ctx.stroke();ctx.restore();
-    // hair: round cap with a fringe, drawn in the offset ink so it shifts like a print
-    ctx.fillStyle=HAIR; ctx.beginPath();
-    ctx.arc(-50,0,56,Math.PI*.93,Math.PI*1.8);
-    ctx.quadraticCurveTo(-7,-20,-22,-25);
-    ctx.quadraticCurveTo(-31,-14,-43,-24);
-    ctx.quadraticCurveTo(-52,-11,-67,-21);
-    ctx.quadraticCurveTo(-92,-6,-104.7,12.2);
-    ctx.closePath(); ctx.fill();
   }
 }
 function layerPlayer(pass,col){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerLayer(pass,col);ctx.restore()}
@@ -782,10 +774,49 @@ function drawLips(o,c,fOff,rOff,face){
   ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*.62,Math.PI*.8); ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.85)'; circ(-1,-(ry-5.2),1.3); ctx.fill();
 }
+function hairPath(){
+  ctx.moveTo(-106.1,18.2);
+  ctx.arc(-50,0,59,Math.PI*.9,Math.PI*1.82);
+  ctx.bezierCurveTo(1,-24,-4,-18,-13,-21);
+  ctx.bezierCurveTo(-18,-27,-24,-27,-30,-22);
+  ctx.bezierCurveTo(-34,-30,-44,-31,-50,-24);
+  ctx.bezierCurveTo(-58,-28,-68,-24,-74,-14);
+  ctx.bezierCurveTo(-86,-6,-96,2,-98,12);
+  ctx.bezierCurveTo(-102,16,-104,17,-106.1,18.2);
+  ctx.closePath();
+}
+// Layered hair: base colour, crown shine, strands, and a shifted riso outline.
+function drawHair(off){
+  ctx.save(); ctx.translate(off[0],off[1]);
+  ctx.beginPath(); hairPath(); ctx.fillStyle='#4b2c1e'; ctx.fill();
+  ctx.save(); ctx.clip();
+  ctx.fillStyle='rgba(120,72,46,.55)'; ctx.beginPath(); ctx.ellipse(-52,-52,44,16,-.12,0,Math.PI*2); ctx.fill();
+  ctx.lineCap='round';
+  ctx.strokeStyle='rgba(255,214,176,.38)'; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(-84,-30); ctx.quadraticCurveTo(-52,-60,-16,-40); ctx.stroke();
+  ctx.strokeStyle='rgba(255,232,206,.65)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-80,-34); ctx.quadraticCurveTo(-52,-57,-20,-41); ctx.stroke();
+  ctx.strokeStyle='rgba(20,8,4,.6)'; ctx.lineWidth=1.8;
+  for(const [x0,y0,cx,cy,x1,y1] of [[-18,-50,-26,-36,-14,-25],[-34,-54,-44,-40,-32,-29],[-50,-57,-60,-43,-52,-31],[-68,-50,-80,-34,-72,-18],[-86,-34,-98,-18,-92,2],[-94,-14,-102,0,-98,14]]){
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(cx,cy,x1,y1); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.globalCompositeOperation='multiply'; ctx.strokeStyle=BL; ctx.lineWidth=3.2; ctx.lineJoin='round';
+  ctx.beginPath(); hairPath(); ctx.stroke();
+  ctx.restore();
+}
 function playerInk(open,stress,me,alpha=0){
+  const off=2+stress*.12;
+  drawHair(worldToLocal(off,off*.8,alpha,false));
   accessory(me);
+  // eye
+  ctx.fillStyle='#fff'; ctx.strokeStyle=INK; ctx.lineWidth=2.6; ell(-27,-9,8.8,10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=HAIRD; circ(-24,-8,6.1); ctx.fill();
+  ctx.fillStyle=INK; circ(-23.4,-8,3.1); ctx.fill();
+  ctx.fillStyle='#fff'; circ(-21.6,-11,2.1); ctx.fill(); circ(-26,-5.2,1); ctx.fill();
+  ctx.strokeStyle=INK; ctx.lineWidth=3.4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.ellipse(-27,-9,9.2,10.4,0,Math.PI*1.1,Math.PI*1.88); ctx.stroke();
+  ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-18.5,-15.4); ctx.lineTo(-14.6,-18.8); ctx.moveTo(-21.5,-17.7); ctx.lineTo(-19.6,-21.6); ctx.stroke();
   if(stress>55){ctx.fillStyle=SKY;ctx.strokeStyle=INK;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
-  {const off=2+stress*.12; drawLips(open*9,{lo:LIP_LO,up:LIP_UP,ring:BL,line:LIP_LINE,wrinkle:'rgba(143,58,61,.42)',inner:'#5a1f24'},[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP])}
+  drawLips(open*9,{lo:LIP_LO,up:LIP_UP,ring:BL,line:LIP_LINE,wrinkle:'rgba(143,58,61,.42)',inner:'#5a1f24'},[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP]);
 }
 function inkPlayer(open){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerInk(open,G.stress,SAVE.eq.me,G.alpha);ctx.restore()}
 function inkAI(open){
