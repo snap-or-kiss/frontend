@@ -600,7 +600,7 @@ function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addP
 const SKIN='#ffe3cf', SKIN_SH='#f6cdb0';
 function playerLayer(pass,col){
   // restart: a plain circle. pink fill, thin blue ring.
-  if(pass==='pink'){ctx.fillStyle=SKIN;ctx.beginPath();HEADP();ctx.fill()}
+  if(pass==='pink'){ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle=SKIN;ctx.beginPath();HEADP();ctx.fill();ctx.restore()} // opaque: background must not show through
   else{ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.beginPath();HEADP();ctx.stroke()}
 }
 function inPlayer(fn){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);fn();ctx.restore()}
