@@ -597,16 +597,11 @@ function stickParts(){
 }
 function inStick(p,fn){ctx.save();ctx.translate(G.P.x+p.ox,G.P.y+p.oy);ctx.rotate(G.th+p.rot);fn();ctx.restore()}
 function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addPath();ctx.clip('evenodd')}
-const SKIN='#fad2b6', SKIN_SH='#efb995', HAIR='#7a4a33', HAIRD='#3a241a';
-const LIP_LO='#ff8fa3', LIP_UP='#ff8fa3', LIP_LINE='#b5775a';
+const SKIN='#fad2b6', SKIN_SH='#efb995';
 function playerLayer(pass,col){
-  const head=HEADP, muz=SNOUTP;
-  if(pass==='pink'){ctx.fillStyle=SKIN;ctx.beginPath();head();muz();ctx.fill()}
-  else{
-    ctx.strokeStyle=col;ctx.lineWidth=6;
-    ctx.save();clipOutside(muz);ctx.beginPath();head();ctx.stroke();ctx.restore();
-    ctx.save();clipOutside(head);ctx.beginPath();muz();ctx.stroke();ctx.restore();
-  }
+  // restart: a plain circle. pink fill, thin blue ring.
+  if(pass==='pink'){ctx.fillStyle=SKIN;ctx.beginPath();HEADP();ctx.fill()}
+  else{ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();HEADP();ctx.stroke()}
 }
 function inPlayer(fn){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);fn();ctx.restore()}
 function layerPlayer(pass,col){inPlayer(()=>playerLayer(pass,col))}
@@ -742,7 +737,7 @@ function accessory(id){
   }
   ctx.restore();
 }
-const HEADP=()=>{ctx.moveTo(4,0);ctx.arc(-50,0,54,0,Math.PI*2)}, SNOUTP=()=>rrp(-28,-17.5,38,35,14);
+const HEADP=()=>{ctx.moveTo(4,0);ctx.arc(-34,0,38,0,Math.PI*2)};
 const AIHEADP=()=>rrp(-106,-52,106,104,24), AISNOUTP=()=>rrp(-18,-24,30,48,10);
 function worldToLocal(wx,wy,ang,flipY){
   const c=Math.cos(-ang),sn=Math.sin(-ang); let x=wx*c-wy*sn, y=wx*sn+wy*c; if(flipY)y=-y; return [x,y];
@@ -757,34 +752,8 @@ function drawLips(o,c,fOff,rOff,face){
   ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=c.ring; ctx.lineWidth=5; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
   if(g>.8){ctx.fillStyle=c.inner; ell(cx,0,3.4,Math.min(3.2,g*.5)); ctx.fill()}
 }
-function hairPath(){
-  ctx.moveTo(-106.1,18.2);
-  ctx.arc(-50,0,59,Math.PI*.9,Math.PI*1.82);
-  ctx.bezierCurveTo(1,-24,-4,-18,-13,-21);
-  ctx.bezierCurveTo(-18,-27,-24,-27,-30,-22);
-  ctx.bezierCurveTo(-34,-30,-44,-31,-50,-24);
-  ctx.bezierCurveTo(-58,-28,-68,-24,-74,-14);
-  ctx.bezierCurveTo(-86,-6,-96,2,-98,12);
-  ctx.bezierCurveTo(-102,16,-104,17,-106.1,18.2);
-  ctx.closePath();
-}
-// Plain hair: one flat colour, no outline or inner lines.
-function drawHair(off){
-  ctx.save(); ctx.translate(off[0],off[1]);
-  ctx.beginPath(); hairPath(); ctx.fillStyle='#4b2c1e'; ctx.fill();
-  ctx.restore();
-}
-function playerInk(open,stress,me,alpha=0){
-  const off=2+stress*.12;
-  drawHair(worldToLocal(off,off*.8,alpha,false));
-  accessory(me);
-  // blush + simple eye: one dark oval, one highlight
-  ctx.save(); ctx.globalCompositeOperation='multiply'; ctx.fillStyle='rgba(255,107,157,.55)'; ell(-20,7,8.5,5.2); ctx.fill(); ctx.restore();
-  ctx.fillStyle=INK; ell(-27,-9,6.2,8); ctx.fill();
-  ctx.fillStyle='#fff'; circ(-25.2,-12,2.3); ctx.fill();
-  if(stress>55){ctx.fillStyle=SKY;ctx.strokeStyle=INK;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
-  drawLips(open*9,{lo:LIP_LO,up:LIP_UP,ring:BL,line:LIP_LINE,wrinkle:'rgba(143,58,61,.42)',inner:'#5a1f24'},[0,0],worldToLocal(off,off*.8,alpha,false),[HEADP,SNOUTP]);
-}
+// accessories were drawn for the old r54 head at x=-50; map them onto the smaller circle
+function playerInk(open,stress,me,alpha=0){ctx.save();ctx.translate(-34,0);ctx.scale(38/54,38/54);ctx.translate(50,0);accessory(me);ctx.restore()}
 function inkPlayer(open){inPlayer(()=>playerInk(open,G.stress,SAVE.eq.me,G.alpha))}
 function inkAI(open){
   const warn=G.J.warn>0, flash=warn&&Math.floor(G.J.warn*20)%2===0;
