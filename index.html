@@ -744,14 +744,24 @@ function accessory(id){
   }
   ctx.restore();
 }
+function drawLips(o,fill){
+  const g=o*.6, ry=14.8+g;
+  ctx.beginPath(); ctx.ellipse(6,0,10.2,ry,0,0,Math.PI*2);
+  ctx.fillStyle=fill; ctx.fill(); ctx.lineWidth=2.6; ctx.strokeStyle=INK; ctx.lineJoin='round'; ctx.stroke();
+  if(g>.8){ctx.fillStyle=INK; ell(10.5,0,4.2,Math.min(3.4,g*.5)); ctx.fill()}
+  ctx.strokeStyle=INK; ctx.lineWidth=2.4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-3.6,.4); ctx.quadraticCurveTo(3,-2.8,7,-.6); ctx.quadraticCurveTo(11,2,15.8,.2); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=2.2;
+  ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*1.12,Math.PI*1.4); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(6,0,7.2,ry-2.6,0,Math.PI*.62,Math.PI*.8); ctx.stroke();
+}
 function playerInk(open,stress,me){
   accessory(me);
   ctx.fillStyle=PAPER; ctx.strokeStyle=INK; ctx.lineWidth=3; circ(-26,-14,9); ctx.fill(); ctx.stroke();
   ctx.fillStyle=INK; circ(-23,-14,4.2); ctx.fill();
   ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-36,-30); ctx.lineTo(-18,-28); ctx.stroke();
   if(stress>55){ctx.fillStyle=SKY;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
-  const o=open*9; ctx.fillStyle=YE; ctx.lineWidth=3;
-  ell(6,-(13+o),10,6.5); ctx.fill(); ctx.stroke(); ell(6,13+o,10,6.5); ctx.fill(); ctx.stroke();
+  drawLips(open*9,RED);
 }
 function inkPlayer(open){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerInk(open,G.stress,SAVE.eq.me);ctx.restore()}
 function inkAI(open){
@@ -759,8 +769,7 @@ function inkAI(open){
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
   ctx.fillStyle=INK; rr(-98,-40,84,80,14); ctx.fill();
   ctx.fillStyle=flash?PAPER:EYE[G.type]; rr(-84,-26,40,16,8); ctx.fill(); rr(-84,6,40,16,8); ctx.fill();
-  const o=open*9; ctx.fillStyle=PAPER; ctx.strokeStyle=INK; ctx.lineWidth=3;
-  rr(-8,-(19+o),19,11,4); ctx.fill(); ctx.stroke(); rr(-8,8+o,19,11,4); ctx.fill(); ctx.stroke();
+  drawLips(open*9,'#dfe7f0');
   ctx.restore();
   if(warn)sticker('!',G.A.x+Math.cos(G.th)*-50+50,G.A.y-92,28,YE,-.1);
 }
