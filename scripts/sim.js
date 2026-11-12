@@ -12,6 +12,7 @@ const mk = () => new Proxy(function () {}, {
   get: (t, k) => k === 'classList' ? { add() {}, remove() {}, toggle() {}, contains: () => false }
     : k === 'style' ? {} : k === 'dataset' ? {}
     : k === 'getBoundingClientRect' ? () => ({ left: 0, top: 0, width: 960, height: 540 })
+    : k === 'offsetWidth' ? 960 : k === 'offsetHeight' ? 540
     : k === 'measureText' ? () => ({ width: 100 })
     : k === 'createLinearGradient' ? () => ({ addColorStop() {} })
     : k === 'value' ? 'tester' : mk(),
