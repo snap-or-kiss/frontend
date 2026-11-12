@@ -638,7 +638,7 @@ function wavyPath(a,b,hw,amp,woff){
 function wavyBand(a,b,hw,amp,woff){ctx.beginPath();wavyPath(a,b,hw,amp,woff)}
 // Toppings are drawn twice by onCoat: flat fills inside the coating, outlined only where they poke out of it.
 function topping(type,x,y,rot,ol){
-  ctx.save(); ctx.translate(x,y); ctx.scale(1.15,1.15); ctx.lineWidth=2; ctx.strokeStyle=OUT; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.save(); ctx.translate(x,y); ctx.scale(1.15,1.15); ctx.lineWidth=2.2/1.15; ctx.strokeStyle=OUT; ctx.lineJoin='round'; ctx.lineCap='round';
   const S=()=>{if(ol)ctx.stroke()};
   if(type==='cat'){
     ctx.fillStyle='#efe6c8';
@@ -676,12 +676,12 @@ function topping(type,x,y,rot,ol){
 }
 // draw fn(ol) inside the coating (no outline), then again only outside it (with outline)
 function onCoat(a,c1,woff,fn){
-  ctx.save(); wavyBand(a,c1,13,1.8,woff); ctx.clip(); fn(false); ctx.restore();
-  ctx.save(); ctx.beginPath(); ctx.rect(-80,-80,L+160,160); wavyPath(a,c1,13,1.8,woff); ctx.clip('evenodd'); fn(true); ctx.restore();
+  ctx.save(); wavyBand(a,c1,13,0,woff); ctx.clip(); fn(false); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(-80,-80,L+160,160); wavyPath(a,c1,13,0,woff); ctx.clip('evenodd'); fn(true); ctx.restore();
 }
 function almond(ol){
   ctx.fillStyle='#d8b078'; ell(0,0,7,4); ctx.fill();
-  if(ol){ctx.strokeStyle='#8f5a3a';ctx.lineWidth=1.4;ctx.stroke()}
+  if(ol){ctx.strokeStyle=OUT;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.stroke()}
   ctx.strokeStyle='rgba(143,90,58,.55)';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(-4.5,.4);ctx.quadraticCurveTo(0,-1.4,4.5,.4);ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.55)';ell(-2,-1.4,2.2,.9);ctx.fill();
 }
@@ -698,7 +698,7 @@ function paintStickPart(a,b,hs,woff,sk){
   if(c1-a>2){
     g=ctx.createLinearGradient(0,-15,0,15); g.addColorStop(0,sk.coat[0]); g.addColorStop(.5,sk.coat[1]); g.addColorStop(1,sk.coat[2]);
     ctx.fillStyle=g; ctx.strokeStyle=OUT; ctx.lineWidth=2.2;
-    wavyBand(a,c1,13,1.8,woff); ctx.fill(); ctx.stroke();
+    wavyBand(a,c1,13,0,woff); ctx.fill(); ctx.stroke();
     if(hs>a&&hs<b){ctx.fillStyle=sk.coat[1];for(let k=0;k<3;k++){ell(hs-1,-9+k*9,6,5);ctx.fill();ctx.stroke()}}
     ctx.fillStyle='rgba(255,255,255,.28)'; rr(a+6,-9,Math.max(0,c1-a-14),3,1.5); ctx.fill();
     onCoat(a,c1,woff,ol=>{
