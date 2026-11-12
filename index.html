@@ -653,6 +653,7 @@ function drawScene(){
   realStick(parts); inkStick(parts); inkPlayer(open); inkAI(aopen);
 }
 function drawGauge(){
+  const gs=TOUCH?1.25:1; ctx.save(); ctx.translate(W/2,0); ctx.scale(gs,gs); ctx.translate(-W/2,0);
   const cx=W/2,y=44,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
   ctx.fillStyle=INK; rr(cx-w-14+4,y-18+4,2*w+28,36,4); ctx.fill();
   ctx.fillStyle=PAPER; rr(cx-w-14,y-18,2*w+28,36,4); ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=3; ctx.stroke();
@@ -662,23 +663,27 @@ function drawGauge(){
   const d=(G.alpha-G.th)/D2R, ok=G.err<=TOL;
   ctx.fillStyle=INK; ctx.fillRect(sx(d)-5,y-16,10,32);
   ctx.fillStyle=ok?PK:RED; ctx.fillRect(sx(d)-2.5,y-13,5,26);
-  ctx.fillStyle=INK; ctx.font='700 12px '+BODY; ctx.textAlign='center'; ctx.fillText('각도 오차',cx,y+36);
-  if(G.combo>.15)sticker('FLOW ×'+(1+.7*G.combo).toFixed(1),cx,y+66,16,YE,-.05);
+  ctx.fillStyle=INK; ctx.font='700 '+(TOUCH?14:12)+'px '+BODY; ctx.textAlign='center'; ctx.fillText('각도 오차',cx,y+(TOUCH?38:36));
+  if(G.combo>.15)sticker('FLOW ×'+(1+.7*G.combo).toFixed(1),cx,y+(TOUCH?70:66),16,YE,-.05);
+  ctx.restore();
 }
 function drawHUD(){
-  ctx.fillStyle=INK; ctx.font='700 13px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',24,30);
-  rtext((G.sp*MM).toFixed(1)+' mm',24,72,40,'left');
+  const LB=TOUCH?19:13, NS=TOUCH?46:40, NY=TOUCH?80:72, m=TOUCH?28:24;
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',m,TOUCH?34:30);
+  rtext((G.sp*MM).toFixed(1)+' mm',m,NY,NS,'left');
   const rm=G.R*MM;
-  ctx.fillStyle=INK; ctx.font='700 13px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',W-24,30);
-  rtext(rm.toFixed(1)+' mm',W-24,72,40,'right',rm<20?RED:INK);
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',W-m,TOUCH?34:30);
+  rtext(rm.toFixed(1)+' mm',W-m,NY,NS,'right',rm<20?RED:INK);
   drawGauge();
+  const ss=TOUCH?1.3:1; ctx.save(); ctx.translate(W/2,H); ctx.scale(ss,ss); ctx.translate(-W/2,-H);
   const bw=320,bx=W/2-bw/2,by=H-38;
   ctx.fillStyle=INK; rr(bx+3,by+3,bw,14,2); ctx.fill();
   ctx.fillStyle=PAPER; rr(bx,by,bw,14,2); ctx.fill();
   const c=G.stress>75?(Math.floor(G.t*10)%2?RED:PK):G.stress>40?YE:SKY;
   ctx.fillStyle=c; ctx.fillRect(bx+2,by+2,Math.max(0,(bw-4)*G.stress/100),10);
   ctx.strokeStyle=INK; ctx.lineWidth=3; rr(bx,by,bw,14,2); ctx.stroke();
-  ctx.fillStyle=INK; ctx.font='700 12px '+BODY; ctx.textAlign='center'; ctx.fillText('균열',W/2,by-6);
+  ctx.fillStyle=INK; ctx.font='700 '+(TOUCH?14:12)+'px '+BODY; ctx.textAlign='center'; ctx.fillText('균열',W/2,by-6);
+  ctx.restore();
 }
 function render(){
   ctx.save(); drawBG();
@@ -688,7 +693,7 @@ function render(){
   ctx.globalAlpha=1; ctx.font='28px system-ui'; ctx.textAlign='center';
   for(const h of G.hearts){ctx.globalAlpha=clamp(h.life,0,1);ctx.fillText('💋',h.x,h.y)}
   ctx.globalAlpha=1; ctx.restore();
-  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 14px '+BODY;ctx.textAlign='left';ctx.fillText(selectedMode==='continuous'?runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm':'기본 모드 · 한 개로 승부',24,105);}
+  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';ctx.fillText(selectedMode==='continuous'?runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm':'기본 모드 · 한 개로 승부',TOUCH?28:24,TOUCH?114:105);}
   if(TOUCH&&state==='play'){
     ctx.save(); ctx.setLineDash([9,9]); ctx.lineWidth=3; ctx.strokeStyle='rgba(17,17,17,.4)'; ctx.beginPath(); ctx.moveTo(G.P.x,G.P.y); ctx.lineTo(G.P.x+Math.cos(G.alpha)*170,G.P.y+Math.sin(G.alpha)*170); ctx.stroke();
     ctx.setLineDash([]); ctx.strokeStyle=PK; ctx.lineWidth=3; circ(mouse.x,mouse.y,14); ctx.stroke(); ctx.restore();
