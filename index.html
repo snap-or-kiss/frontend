@@ -792,17 +792,6 @@ const AIHEADP=()=>rrp(-106,-52,106,104,24), AISNOUTP=()=>rrp(-18,-24,30,48,10);
 function worldToLocal(wx,wy,ang,flipY){
   const c=Math.cos(-ang),sn=Math.sin(-ang); let x=wx*c-wy*sn, y=wx*sn+wy*c; if(flipY)y=-y; return [x,y];
 }
-// Lips: two-tone, wrinkles, gloss. They share the face's riso outline, hidden where they meet the face.
-function drawLips(o,c,fOff,rOff,face){
-  // one flat pursed "o": a solid ellipse + riso ring, nothing else
-  const g=o*.6, rx=7, ry=8.5+g, cx=7, lipPath=()=>{ctx.moveTo(cx+rx,0);ctx.ellipse(cx,0,rx,ry,0,0,Math.PI*2)};
-  ctx.save(); ctx.translate(fOff[0],fOff[1]); ctx.beginPath(); lipPath(); ctx.fillStyle=c.lo; ctx.fill(); ctx.restore();
-  ctx.save(); ctx.globalCompositeOperation='multiply';
-  for(const f of face)clipOutside(f);
-  ctx.translate(rOff[0],rOff[1]); ctx.strokeStyle=c.ring; ctx.lineWidth=5; ctx.beginPath(); lipPath(); ctx.stroke(); ctx.restore();
-  if(g>.8){ctx.fillStyle=c.inner; ell(cx,0,3.4,Math.min(3.2,g*.5)); ctx.fill()}
-}
-// accessories were drawn for the old r54 head at x=-50; map them onto the smaller circle
 function playerInk(open,stress,me,alpha=0){ctx.save();ctx.translate(4-HEAD_R,0);ctx.scale(HEAD_R/54,HEAD_R/54);ctx.translate(50,0);accessory(me);ctx.restore()}
 function inkPlayer(open){inPlayer(()=>playerInk(open,G.stress,SAVE.eq.me,G.alpha))}
 function inkAI(open){
@@ -810,7 +799,6 @@ function inkAI(open){
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
   ctx.fillStyle=INK; rr(-98,-40,84,80,14); ctx.fill();
   ctx.fillStyle=flash?PAPER:EYE[G.type]; rr(-84,-26,40,16,8); ctx.fill(); rr(-84,6,40,16,8); ctx.fill();
-  {const off=2+G.stress*.12; drawLips(open*9,{lo:BL,up:'#0a5d99',ring:PK,line:'rgba(255,255,255,.85)',wrinkle:'rgba(255,255,255,.3)',inner:INK},worldToLocal(off,off*.8,G.th+Math.PI,true),[0,0],[AIHEADP,AISNOUTP])}
   ctx.restore();
   if(warn)sticker('!',G.A.x+Math.cos(G.th)*-50+50,G.A.y-92,28,YE,-.1);
 }
@@ -829,7 +817,7 @@ function drawScene(){
 }
 function drawGauge(){
   const gs=TOUCH?1.25:1; ctx.save(); ctx.translate(W/2,0); ctx.scale(gs,gs); ctx.translate(-W/2,0);
-  const cx=W/2,y=44,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
+  const cx=W/2,y=VIEW.y0+44,w=150; const sx=d=>cx+clamp(d,-20,20)/20*w;
   ctx.fillStyle=INK; rr(cx-w-14+4,y-18+4,2*w+28,36,4); ctx.fill();
   ctx.fillStyle=PAPER; rr(cx-w-14,y-18,2*w+28,36,4); ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=3; ctx.stroke();
   ctx.fillStyle=SKY; ctx.fillRect(sx(-TOL),y-9,sx(TOL)-sx(-TOL),18);
@@ -843,15 +831,16 @@ function drawGauge(){
   ctx.restore();
 }
 function drawHUD(){
-  const LB=TOUCH?19:13, NS=TOUCH?46:40, NY=TOUCH?80:72, m=TOUCH?28:24;
-  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',m,TOUCH?34:30);
-  rtext((G.sp*MM).toFixed(1)+' mm',m,NY,NS,'left');
+  // anchored to the visible area (VIEW), so on big windows the numbers sit at the real edges and the crack bar at the real bottom
+  const LB=TOUCH?19:13, NS=TOUCH?46:40, NY=TOUCH?80:72, m=TOUCH?28:24, L=VIEW.x0+m, R=VIEW.x1-m, T=VIEW.y0, B=VIEW.y1;
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='left'; ctx.fillText('먹은 길이',L,T+(TOUCH?34:30));
+  rtext((G.sp*MM).toFixed(1)+' mm',L,T+NY,NS,'left');
   const rm=G.R*MM;
-  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',W-m,TOUCH?34:30);
-  rtext(rm.toFixed(1)+' mm',W-m,NY,NS,'right',rm<20?RED:INK);
+  ctx.fillStyle=INK; ctx.font='700 '+LB+'px '+BODY; ctx.textAlign='right'; ctx.fillText('남은 길이',R,T+(TOUCH?34:30));
+  rtext(rm.toFixed(1)+' mm',R,T+NY,NS,'right',rm<20?RED:INK);
   drawGauge();
-  const ss=TOUCH?1.3:1; ctx.save(); ctx.translate(W/2,H); ctx.scale(ss,ss); ctx.translate(-W/2,-H);
-  const bw=320,bx=W/2-bw/2,by=H-38;
+  const ss=TOUCH?1.3:1; ctx.save(); ctx.translate(W/2,B); ctx.scale(ss,ss); ctx.translate(-W/2,-B);
+  const bw=320,bx=W/2-bw/2,by=B-38;
   ctx.fillStyle=INK; rr(bx+3,by+3,bw,14,2); ctx.fill();
   ctx.fillStyle=PAPER; rr(bx,by,bw,14,2); ctx.fill();
   const c=G.stress>75?(Math.floor(G.t*10)%2?RED:PK):G.stress>40?YE:SKY;
@@ -880,7 +869,7 @@ function render(){
   ctx.globalAlpha=1; ctx.font='28px system-ui'; ctx.textAlign='center';
   for(const h of G.hearts)kissMark(h.x,h.y,h.sz||44,h.r||0,clamp(h.life,0,1));
   ctx.globalAlpha=1; ctx.restore();
-  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';if(selectedMode==='continuous')ctx.fillText(runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm',TOUCH?28:24,TOUCH?114:105);}
+  if(state!=='menu'){drawHUD();ctx.fillStyle=INK;ctx.font='700 '+(TOUCH?18:14)+'px '+BODY;ctx.textAlign='left';if(selectedMode==='continuous')ctx.fillText(runRound+'번째 빼빼로 · 누적 '+runTotal.toFixed(1)+' mm',VIEW.x0+(TOUCH?28:24),VIEW.y0+(TOUCH?114:105));}
   if(state==='play'&&G.t<1.2)sticker(TOUCH?'꾹 누르고 드래그!':'각도를 맞춰라!',W/2,H/2+130,TOUCH?30:34,YE,-.03);
   if(state==='over'&&G.end.t<1.1)sticker(G.end.title,W/2,H/2-120,38,YE,-.04);
 }
