@@ -506,19 +506,28 @@ function inStick(p,fn){ctx.save();ctx.translate(G.P.x+p.ox,G.P.y+p.oy);ctx.rotat
 function layerStick(col,parts){
   for(const p of parts)inStick(p,()=>{ctx.fillStyle=col;rr(p.s0,-13,p.s1-p.s0,26,10);ctx.fill()});
 }
+const MZ={x:-6,r:19};
+function clipOutside(addPath){ctx.beginPath();ctx.rect(-600,-600,1200,1200);addPath();ctx.clip('evenodd')}
 function playerLayer(pass,col){
-  if(pass==='pink'){ctx.fillStyle=col;circ(-50,0,54);ctx.fill()}
+  const head=()=>{ctx.moveTo(4,0);ctx.arc(-50,0,54,0,Math.PI*2)}, muz=()=>{ctx.moveTo(MZ.x+MZ.r,0);ctx.arc(MZ.x,0,MZ.r,0,Math.PI*2)};
+  if(pass==='pink'){ctx.fillStyle=col;ctx.beginPath();head();muz();ctx.fill()}
   else{
-    ctx.strokeStyle=col;ctx.lineWidth=6;circ(-50,0,54);ctx.stroke();
+    ctx.strokeStyle=col;ctx.lineWidth=6;
+    ctx.save();clipOutside(muz);ctx.beginPath();head();ctx.stroke();ctx.restore();
+    ctx.save();clipOutside(head);ctx.beginPath();muz();ctx.stroke();ctx.restore();
     ctx.fillStyle=col;ctx.beginPath();ctx.arc(-50,0,56,Math.PI*.9,Math.PI*1.72);ctx.lineTo(-50,0);ctx.closePath();ctx.fill();
   }
 }
 function layerPlayer(pass,col){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerLayer(pass,col);ctx.restore()}
+function rrp(x,y,w,h,r){ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function layerAI(pass,col){
+  const head=()=>rrp(-106,-52,106,104,24), snout=()=>rrp(-18,-24,30,48,10);
   ctx.save(); ctx.translate(G.A.x,G.A.y); ctx.rotate(G.th+Math.PI); ctx.scale(1,-1);
-  if(pass==='blue'){ctx.fillStyle=col;rr(-106,-52,106,104,24);ctx.fill()}
+  if(pass==='blue'){ctx.fillStyle=col;ctx.beginPath();head();snout();ctx.fill()}
   else{
-    ctx.strokeStyle=col;ctx.lineWidth=6;rr(-106,-52,106,104,24);ctx.stroke();
+    ctx.strokeStyle=col;ctx.lineWidth=6;
+    ctx.save();clipOutside(snout);ctx.beginPath();head();ctx.stroke();ctx.restore();
+    ctx.save();clipOutside(head);ctx.beginPath();snout();ctx.stroke();ctx.restore();
     ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-70,-52);ctx.lineTo(-70,-72);ctx.stroke();
     ctx.fillStyle=col;circ(-70,-76,7);ctx.fill();
   }
@@ -649,7 +658,7 @@ function playerInk(open,stress,me){
   ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-36,-30); ctx.lineTo(-18,-28); ctx.stroke();
   if(stress>55){ctx.fillStyle=SKY;ctx.lineWidth=2;ell(-44,-44,5,8);ctx.fill();ctx.stroke()}
   const o=open*9; ctx.fillStyle=YE; ctx.lineWidth=3;
-  ell(3,-(15+o),11,7); ctx.fill(); ctx.stroke(); ell(3,15+o,11,7); ctx.fill(); ctx.stroke();
+  ell(6,-(13+o),10,6.5); ctx.fill(); ctx.stroke(); ell(6,13+o,10,6.5); ctx.fill(); ctx.stroke();
 }
 function inkPlayer(open){ctx.save();ctx.translate(G.P.x,G.P.y);ctx.rotate(G.alpha);playerInk(open,G.stress,SAVE.eq.me);ctx.restore()}
 function inkAI(open){
@@ -658,7 +667,7 @@ function inkAI(open){
   ctx.fillStyle=INK; rr(-98,-40,84,80,14); ctx.fill();
   ctx.fillStyle=flash?PAPER:EYE[G.type]; rr(-84,-26,40,16,8); ctx.fill(); rr(-84,6,40,16,8); ctx.fill();
   const o=open*9; ctx.fillStyle=PAPER; ctx.strokeStyle=INK; ctx.lineWidth=3;
-  rr(-10,-(25+o),16,11,4); ctx.fill(); ctx.stroke(); rr(-10,14+o,16,11,4); ctx.fill(); ctx.stroke();
+  rr(-8,-(19+o),19,11,4); ctx.fill(); ctx.stroke(); rr(-8,8+o,19,11,4); ctx.fill(); ctx.stroke();
   ctx.restore();
   if(warn)sticker('!',G.A.x+Math.cos(G.th)*-50+50,G.A.y-92,28,YE,-.1);
 }
