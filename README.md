@@ -2,7 +2,7 @@
 
 AI와 빼빼로 한 개를 마주 먹는 고난이도 각도 맞추기 게임. 입술이 닿기 전에 최대한 많이 먹고, 점수(mm)로 경쟁한다.
 
-- 플레이: https://snap-or-kiss.github.io/frontend/ (짧은 주소 https://snap-or-kiss.github.io/ 는 여기로 넘어간다)
+- 플레이: https://snap-or-kiss.github.io/ (게임 파일은 이 저장소 `main`의 `index.html`이고, 그 주소를 서빙하는 `snap-or-kiss.github.io` 저장소가 10분마다 복사해 간다. 바로 반영하려면 그 저장소 Actions 탭에서 "Sync game from frontend"를 Run workflow)
 - 저장소: https://github.com/snap-or-kiss/frontend (이 저장소). 백엔드는 `snap-or-kiss/backend`로 따로 만든다.
 - 프런트엔드: 의존성 없는 단일 `index.html` (Canvas 2D + 바닐라 JS). 빌드 없음. 배포용 저장소는 따로 없다. 이 저장소의 `main`에 푸시하면 GitHub Pages가 바로 배포한다.
 - 백엔드: 아직 없음. 친구가 개발한다. 이 문서의 [백엔드 명세](#b-백엔드)와 [CONTRACTS.md](CONTRACTS.md)가 합의 기준이다.
