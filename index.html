@@ -910,12 +910,18 @@ function physics(dt){
   for(const h of G.hearts){h.x+=h.vx*dt;h.y+=h.vy*dt;h.life-=dt}
   G.hearts=G.hearts.filter(h=>h.life>0);
 }
+// A full-screen overlay (portrait phones) hides the stage completely, so drawing it would be wasted work.
+const overlayEl=$('#overlay'), portraitMQ=window.matchMedia?matchMedia(PORTRAIT_Q):null;
+const stageHidden=()=>state!=='play'&&!!portraitMQ&&portraitMQ.matches&&overlayEl.classList.contains('show');
+let menuTick=0;
 function loop(ts){
+  // the idle menu demo only needs 30fps: skip every other frame without losing time (dt accumulates)
+  if(state==='menu'&&(menuTick^=1)){requestAnimationFrame(loop);return}
   const dt=Math.min(.05,(ts-last)/1000||0); last=ts;
   if(state==='play')update(dt);
   else if(state==='menu'){G.t+=dt;stepAI(dt);geom();G.alpha+=(G.th-G.alpha)*Math.min(1,dt*3)}
   else if(state==='over'){G.end.t+=dt;if(!G.end.shown&&G.end.t>1.2)showResult()}
-  physics(dt); render(); requestAnimationFrame(loop);
+  physics(dt); if(!stageHidden())render(); requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 </script>
