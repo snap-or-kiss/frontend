@@ -31,7 +31,7 @@ let seed = 12345;
 Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 
 (0, eval)(src + `
-;globalThis.T={startGame,update,render,finish,showResult,
+;globalThis.T={startGame,update,render,finish,showResult,scorePayload,
   setMode:m=>{selectedMode=m},
   get G(){return G},get state(){return state},get SAVE(){return SAVE},
   setMouse:(x,y)=>{mouse.x=x;mouse.y=y},hold:v=>{down=v},
@@ -72,6 +72,19 @@ for (const [name, policy] of Object.entries(policies)) {
     if (kind === 'snap') ok(near(G.score, round1(eaten * (left <= 20 ? 1.15 : 1))), name + ': 끊으면 먹은 길이(남은 20mm 이하면 ×1.15)여야 한다');
     ok(G.coins === Math.round(G.score), name + ': 코인은 점수 반올림이어야 한다');
     ok(G.stress >= 0 && G.stress <= 100, name + ': 균열 값이 0~100을 벗어났다');
+    // 서버로 보낼 본문(FE-42)이 백엔드 검증(backend src/validate.js)을 통과할 값인지: 같은 규칙을 여기서도 확인한다
+    const pl = T.scorePayload(kind, G);
+    if ((kind === 'snap' || kind === 'break') && G.score > 0) {
+      ok(pl && pl.outcome === kind, name + ': 서버 제출 본문이 있어야 한다');
+      if (pl) {
+        const srv = round1(pl.eatenMm * (pl.outcome === 'snap' ? (pl.remainingMm <= 20 ? 1.15 : 1) : 0.5));
+        ok(Math.abs(srv - pl.score) <= 0.1, name + ': 서버가 다시 계산한 점수와 0.1 넘게 다르다 ' + srv + ' vs ' + pl.score);
+        ok(pl.eatenMm > 0 && pl.eatenMm <= 180 && pl.remainingMm >= 0 && pl.remainingMm <= 180 && pl.eatenMm + pl.remainingMm <= 180.1, name + ': 길이 범위');
+        ok(Number.isInteger(pl.durationMs) && pl.durationMs > 0 && pl.durationMs <= 30 * 60 * 1000, name + ': durationMs');
+        ok(pl.durationMs >= (pl.eatenMm / 5.409) * 1000 * 0.9, name + ': 먹을 수 있는 최대 속도보다 빠르다(too_fast) ' + pl.durationMs + 'ms, ' + pl.eatenMm.toFixed(1) + 'mm');
+        ok(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pl.deviceId), name + ': deviceId는 UUID');
+      }
+    } else ok(pl === null, name + ': ' + kind + '은 서버로 보내지 않는다');
   }
 }
 ok((counts.kiss || 0) > 0 && (counts.snap || 0) > 0, '뽀뽀와 끊기 결과가 모두 나와야 한다: ' + JSON.stringify(counts));

@@ -41,6 +41,11 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 .how li{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start}
 .how .ic{text-align:center;font-size:15px;line-height:1.4}
 .how li span:last-child{word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
+.tabs{display:flex;gap:8px;margin:2px 0 8px}
+.tabs button{padding:4px 12px;font-size:13px;box-shadow:3px 3px 0 var(--ink)}
+.tabs[hidden]{display:none}
+.lbnote{margin:0 0 6px;font-size:12px;font-weight:700;color:var(--muted)}
+.lbnote[hidden]{display:none}
 .rank{display:inline-block;margin:10px 0 0;padding:3px 10px;background:var(--ink);color:var(--yellow);font-weight:800;font-size:13px;transform:rotate(-1.5deg)}
 input{width:100%;padding:11px 12px;border:3px solid var(--ink);background:#fff;color:var(--ink);font-size:15px;margin-bottom:10px;font-weight:600}
 input:focus{outline:3px solid var(--sky)}
@@ -263,7 +268,7 @@ button .ico,.rank .ico,.lb h3 .ico{width:1.25em;height:1.25em;vertical-align:-.2
           <li><span class="ic"><svg class="ico" aria-hidden="true"><use href="#ico-kiss"/></svg></span><span>입술이 닿으면 <b>0점</b>. 경기 중 발생한 사랑은 점수와 무관한 것으로 본다</span></li>
         </ul>
       </div>
-      <div class="lb"><h3><svg class="ico" aria-hidden="true"><use href="#ico-trophy"/></svg> 리더보드 (이 기기)</h3><ol id="lb"></ol></div>
+      <div class="lb"><h3><svg class="ico" aria-hidden="true"><use href="#ico-trophy"/></svg> 리더보드 (이 기기)</h3><div id="lbTabs" class="tabs" hidden><button id="tabGlobal" aria-pressed="true">전체</button><button id="tabLocal" class="ghost" aria-pressed="false">이 기기</button></div><p id="lbNote" class="lbnote" hidden></p><ol id="lb"></ol></div>
     </div>
     <div class="card shop" id="shopCard" style="display:none">
       <div class="shophead"><h2>상점</h2><span id="coins" class="rank"></span><button id="shopBack" class="xbtn" aria-label="상점 닫기"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>
@@ -302,6 +307,54 @@ const LB={
     return {rank,ts:e.ts};
   }
 };
+/* ---------- server leaderboard (FE-40~44) ----------
+   API_BASE가 비어 있으면 이 블록은 전부 꺼져 있고 게임은 지금처럼 이 기기에서만 동작한다. */
+const API_BASE='';   // 예: 'https://api.example.com' (끝에 / 없이)
+const API=(()=>{     // 로컬 개발에서만 ?api=http://localhost:8787 로 바꿔 끼울 수 있다. 링크 하나로 점수를 다른 서버에 보내게 만들 수는 없다.
+  try{const q=new URLSearchParams(location.search).get('api');
+    if(q&&/^(localhost|127\.0\.0\.1)$/.test(location.hostname)&&/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(q))return q}catch(_){}
+  return API_BASE})();
+function uuid(){
+  if(crypto.randomUUID)return crypto.randomUUID();   // http 주소에서는 없을 수 있어 직접 만드는 길도 둔다
+  const b=crypto.getRandomValues(new Uint8Array(16)); b[6]=b[6]&15|64; b[8]=b[8]&63|128;
+  const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+  return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}
+let memDid=null;
+function deviceId(){ // 닉네임은 신원이 아니다. 기기마다 한 번 만든 UUID가 "한 사람"이다.
+  try{let d=localStorage.getItem('pepero.did'); if(d&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(d))return d; d=uuid(); localStorage.setItem('pepero.did',d); return d}
+  catch(_){return memDid||(memDid=uuid())}}
+async function api(path,{method='GET',body,ms=3000}={}){ // 실패해도 던지지 않는다: {ok,status(0=연결 실패),json}
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),ms);
+  try{const r=await fetch(API+path,{method,signal:ctl.signal,headers:body?{'content-type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
+    let j=null; try{j=await r.json()}catch(_){}
+    return {ok:r.ok,status:r.status,json:j}}
+  catch(_){return {ok:false,status:0,json:null}}
+  finally{clearTimeout(t)}}
+// 서버에 보낼 본문. 기본 모드에서 끊거나(snap) 부러져서(break) 점수가 0보다 클 때만 만든다(연속 모드는 서버 계약이 아직 없다).
+function scorePayload(kind,g){
+  if(selectedMode!=='basic'||(kind!=='snap'&&kind!=='break')||!(g.score>0))return null;
+  return {deviceId:deviceId(),name:getName(),outcome:kind,eatenMm:g.sp*MM,remainingMm:g.R*MM,durationMs:Math.max(1,Math.round(g.t*1000)),score:g.score,clientVersion:'web-1'};
+}
+const pending={ // 보내지 못한 기록. 최대 5개, 다음 판을 시작할 때 한 번 다시 보낸다
+  key:'pepero.pending.v1',
+  load(){try{const a=JSON.parse(localStorage.getItem(this.key));return Array.isArray(a)?a.filter(p=>p&&typeof p.deviceId==='string').slice(0,5):[]}catch(_){return[]}},
+  save(a){try{localStorage.setItem(this.key,JSON.stringify(a.slice(0,5)))}catch(_){}}
+};
+const retryable=r=>r.status===0||r.status===429||r.status>=500; // 연결 실패, 제한, 서버 오류만 다시 시도한다. 400대 검증 오류는 다시 보내도 같다
+async function submitScore(p){
+  const r=await api('/v1/scores',{method:'POST',body:p,ms:8000});
+  if(r.ok&&r.json&&Number.isFinite(r.json.rank))return {rank:r.json.rank};
+  if(retryable(r))pending.save(pending.load().concat([p]));
+  return null;
+}
+async function retryPending(){
+  const a=pending.load(); if(!a.length)return; pending.save([]);
+  const keep=[];
+  for(const p of a){const r=await api('/v1/scores',{method:'POST',body:p,ms:8000}); if(!r.ok&&retryable(r))keep.push(p)}
+  if(keep.length)pending.save(pending.load().concat(keep));
+}
+let lbTab='global', lbSeq=0, lbCache=null, submitSeq=0;
+const tabsOn=()=>!!API&&selectedMode==='basic';
 function selectMode(mode){
   if(state==='play'||state==='over')return;
   selectedMode=mode;
@@ -310,21 +363,40 @@ function selectMode(mode){
   for(const [id,m] of [['basicMode','basic'],['continuousMode','continuous']]){const b=$('#'+id);b.classList.toggle('ghost',mode!==m);b.setAttribute('aria-pressed',String(mode===m))}
   renderLB(0);
 }
-function renderLB(hiTs){
-  const entries=LB.load();
-  $('#modeStats').textContent=(selectedMode==='basic'?'한 판 최고':'누적 최고')+' · '+(entries[0]?.score||0).toFixed(1)+' mm';
-  document.querySelector('.lb h3').textContent=(selectedMode==='basic'?'기본 모드':'연속 모드')+' 순위 (이 기기)';
-  const ol=$('#lb'); ol.innerHTML=''; const a=entries.slice(0,10);
-  if(!a.length){ol.innerHTML='<div class="empty">아직 아무도 안 먹었어요. 역사를 쓰세요.</div>';return}
-  a.forEach((e,i)=>{
-    const li=document.createElement('li'); if(e.ts===hiTs)li.className='me';
-    const r=document.createElement('i'); r.textContent=i+1;
+function drawRows(ol,rows,hi){ // rows: [{rank,name,score,me}]
+  ol.innerHTML='';
+  rows.forEach(e=>{
+    const li=document.createElement('li'); if(e.me)li.className='me';
+    const r=document.createElement('i'); r.textContent=e.rank;
     const n=document.createElement('span'); n.textContent=e.name;
     const s=document.createElement('em'); s.textContent=e.score.toFixed(1)+'mm';
     li.append(r,n,s); ol.append(li);
   });
 }
-
+function renderLB(hiTs,hiRank){
+  const entries=LB.load(), on=tabsOn(), global=on&&lbTab==='global';
+  $('#modeStats').textContent=(selectedMode==='basic'?'한 판 최고':'누적 최고')+' · '+(entries[0]?.score||0).toFixed(1)+' mm';
+  document.querySelector('.lb h3').textContent=(selectedMode==='basic'?'기본 모드':'연속 모드')+' 순위 ('+(global?'전체':'이 기기')+')';
+  $('#lbTabs').hidden=!on; $('#lbNote').hidden=true;
+  if(on){const g=$('#tabGlobal'),l=$('#tabLocal'); g.classList.toggle('ghost',!global); g.setAttribute('aria-pressed',String(global)); l.classList.toggle('ghost',global); l.setAttribute('aria-pressed',String(!global))}
+  const ol=$('#lb');
+  const local=note=>{
+    if(note){const n=$('#lbNote'); n.textContent=note; n.hidden=false}
+    if(!entries.length){ol.innerHTML='<div class="empty">아직 아무도 안 먹었어요. 역사를 쓰세요.</div>';return}
+    drawRows(ol,entries.slice(0,10).map((e,i)=>({rank:i+1,name:e.name,score:e.score,me:e.ts===hiTs})));
+  };
+  if(!global){local();return}
+  const draw=j=>{ if(!j.entries.length){ol.innerHTML='<div class="empty">아직 아무도 안 먹었어요. 역사를 쓰세요.</div>';return}
+    drawRows(ol,j.entries.map(e=>({rank:e.rank,name:String(e.name),score:Number(e.score)||0,me:e.rank===hiRank})))};
+  const my=++lbSeq;                    // 늦게 온 응답이 새 화면을 덮어쓰지 않게 한다
+  if(lbCache)draw(lbCache); else ol.innerHTML='<div class="empty">순위를 불러오는 중…</div>';
+  api('/v1/leaderboard?limit=10').then(r=>{
+    if(my!==lbSeq)return;
+    if(r.ok&&r.json&&Array.isArray(r.json.entries)){lbCache=r.json;draw(r.json)}
+    else if(!lbCache)local('서버에 연결할 수 없어 이 기기 기록을 보여줘요.');
+    else{const n=$('#lbNote'); n.textContent='서버에 연결할 수 없어 마지막으로 받은 순위를 보여줘요.'; n.hidden=false}
+  });
+}
 /* ---------- save / coins ---------- */
 const SAVE_KEY='pepero.save.v1';
 const SAVE={coins:0,owned:['pk:classic','me:none'],eq:{pk:'classic',me:'none'}};
@@ -549,13 +621,22 @@ function showResult(){
   $('#menuTop').style.display='none'; $('#resTop').style.display='block'; $('#menuBtn').style.display='block';
   $('#resTitle').textContent=e.title; $('#resScore').textContent=G.score.toFixed(1)+' mm';
   let ts=0; const rk=$('#resRank'); rk.style.display='none'; const rc=$('#resCoin'); rc.style.display='none';
-  if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;rk.textContent='이 기기 '+r.rank+'위';rk.style.display='inline-block'; rc.textContent='+'+G.coins+' 코인'; rc.style.display='inline-block'; updateCoins()}
+  if(G.score>0){const r=LB.add(getName(),G.score,e.kind);ts=r.ts;const localRank='이 기기 '+r.rank+'위';rk.textContent=localRank;rk.style.display='inline-block';
+    const payload=API?scorePayload(e.kind,G):null;
+    if(payload){ // FE-44: 집계하는 동안 "집계 중…", 3초가 지나면 이 기기 순위로 바꾸고, 그 뒤에 답이 오면 전체 순위로 올린다
+      const my=++submitSeq; let answered=false; rk.textContent='집계 중…';
+      setTimeout(()=>{if(my===submitSeq&&!answered)rk.textContent=localRank},3000);
+      submitScore(payload).then(res=>{answered=true; if(my!==submitSeq)return;
+        rk.textContent=res?'전체 '+res.rank+'위':localRank;
+        if(res){lbCache=null; if(tabsOn()&&lbTab==='global')renderLB(0,res.rank)}});
+    }
+    rc.textContent='+'+G.coins+' 코인'; rc.style.display='inline-block'; updateCoins()}
   $('#resMsg').textContent=e.msg+(selectedMode==='continuous'?' · '+runRound+'번째 빼빼로 / 누적 기록':''); $('#go').textContent='다시 도전';
   renderLB(ts); $('#overlay').classList.add('show');
 }
 function getName(){const n=$('#name').value.trim()||'익명';try{localStorage.setItem('pepero.name',n)}catch(_){}return n}
 function startGame(){
-  initAudio(); getName(); runTotal=0;runRound=1;$('#cashOut').hidden=true; G=newGame(false); state='play';
+  initAudio(); getName(); submitSeq++; if(API)retryPending(); runTotal=0;runRound=1;$('#cashOut').hidden=true; G=newGame(false); state='play';
   $('#overlay').classList.remove('show'); setControls(true); rotWant=true; applyRot();
 }
 function toMenu(){
@@ -612,6 +693,8 @@ $('#shopBtn').onclick=()=>showShop(true); $('#shopBack').onclick=()=>showShop(fa
 $('#basicMode').onclick=()=>selectMode('basic');$('#continuousMode').onclick=()=>selectMode('continuous');
 $('#go').onclick=startGame; $('#menuBtn').onclick=toMenu;
 try{$('#name').value=localStorage.getItem('pepero.name')||''}catch(_){}
+$('#tabGlobal').addEventListener('click',()=>{lbTab='global';renderLB(0)});
+$('#tabLocal').addEventListener('click',()=>{lbTab='local';renderLB(0)});
 renderLB(0); $('#overlay').classList.add('show');
 
 /* ---------- rendering (riso x memphis) ---------- */
