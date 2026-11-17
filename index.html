@@ -6,7 +6,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Pepero Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap"></noscript>
 <style>
 :root{
   --paper:#f3efe6; --ink:#111; --pink:#ff48b0; --blue:#0078bf; --yellow:#ffe14d; --sky:#3ec5ff; --red:#ff2e63;
@@ -291,7 +292,8 @@ const $=s=>document.querySelector(s);
 let selectedMode='basic';
 const LB={
   get key(){return selectedMode==='continuous'?'pepero.lb.continuous.v1':'pepero.lb.v1'},
-  load(){try{return JSON.parse(localStorage.getItem(this.key))||[]}catch(e){return[]}},
+  load(){try{const a=JSON.parse(localStorage.getItem(this.key));
+    return Array.isArray(a)?a.filter(e=>e&&typeof e.name==='string'&&Number.isFinite(e.score)&&Number.isFinite(e.ts)).slice(0,50):[]}catch(e){return[]}},
   add(name,score,outcome){
     const a=this.load(); const e={name,score,outcome,ts:Date.now()};
     a.push(e); a.sort((x,y)=>y.score-x.score||x.ts-y.ts);
@@ -312,7 +314,7 @@ function renderLB(hiTs){
   const entries=LB.load();
   $('#modeStats').textContent=(selectedMode==='basic'?'한 판 최고':'누적 최고')+' · '+(entries[0]?.score||0).toFixed(1)+' mm';
   document.querySelector('.lb h3').textContent=(selectedMode==='basic'?'기본 모드':'연속 모드')+' 순위 (이 기기)';
-  const ol=$('#lb'); ol.innerHTML=''; const a=LB.load().slice(0,10);
+  const ol=$('#lb'); ol.innerHTML=''; const a=entries.slice(0,10);
   if(!a.length){ol.innerHTML='<div class="empty">아직 아무도 안 먹었어요. 역사를 쓰세요.</div>';return}
   a.forEach((e,i)=>{
     const li=document.createElement('li'); if(e.ts===hiTs)li.className='me';
@@ -326,8 +328,9 @@ function renderLB(hiTs){
 /* ---------- save / coins ---------- */
 const SAVE_KEY='pepero.save.v1';
 const SAVE={coins:0,owned:['pk:classic','me:none'],eq:{pk:'classic',me:'none'}};
-(function(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));if(d){SAVE.coins=d.coins|0;
-  if(Array.isArray(d.owned))SAVE.owned=Array.from(new Set(SAVE.owned.concat(d.owned)));if(d.eq)Object.assign(SAVE.eq,d.eq)}}catch(_){}})();
+(function(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));if(d&&typeof d==='object'){SAVE.coins=Math.max(0,d.coins|0);
+  if(Array.isArray(d.owned))SAVE.owned=Array.from(new Set(SAVE.owned.concat(d.owned.filter(x=>typeof x==='string'))));
+  if(d.eq&&typeof d.eq==='object')for(const k of ['pk','me'])if(typeof d.eq[k]==='string')SAVE.eq[k]=d.eq[k]}}catch(_){}})();
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(_){}}
 const COIN='<svg class="ico" aria-hidden="true"><use href="#ico-coin"/></svg>';
 const fmtCoins=n=>n>=10000?(n/10000).toFixed(1).replace(/\.0$/,'')+'만':String(n);
@@ -336,10 +339,17 @@ function updateCoins(){const b=$('#shopBtn');if(b)b.innerHTML='상점 · '+COIN+
 /* ---------- audio ---------- */
 let ac=null;
 function initAudio(){ if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}} if(ac&&ac.state==='suspended')ac.resume(); }
+let noise=null;
+function noiseBuf(){ // a handful of 60ms bursts made once; crunch() runs many times a second while eating
+  if(noise&&noise.rate===ac.sampleRate)return noise.list[Math.random()*noise.list.length|0];
+  const list=[]; for(let k=0;k<4;k++){const n=ac.sampleRate*.06|0, b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2); list.push(b)}
+  noise={rate:ac.sampleRate,list}; return list[0];
+}
+let voices=0;
 function crunch(vol=.12,f=1800){
-  if(!ac)return; const n=ac.sampleRate*.06|0, b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
-  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-  const s=ac.createBufferSource(); s.buffer=b;
+  if(!ac||ac.state!=='running'||voices>=8)return;
+  const s=ac.createBufferSource(); s.buffer=noiseBuf(); voices++; s.onended=()=>{voices--};
   const fl=ac.createBiquadFilter(); fl.type='bandpass'; fl.frequency.value=f+Math.random()*1500;
   const g=ac.createGain(); g.gain.value=vol; s.connect(fl).connect(g).connect(ac.destination); s.start();
 }
@@ -359,12 +369,21 @@ function fit(){
   const k=Math.max(1,Math.min(3,s*(window.devicePixelRatio||1))), q=k/s;
   const ox=(cw-W*s)/2, oy=(ch-H*s)/2;
   Object.assign(VIEW,{s,ox,oy,x0:-ox/s,y0:-oy/s,x1:(cw-ox)/s,y1:(ch-oy)/s,cw,ch,dpr:window.devicePixelRatio||1});
-  canvas.width=Math.round(cw*q); canvas.height=Math.round(ch*q); ctx.setTransform(k,0,0,k,ox*q,oy*q);
+  const bw=Math.round(cw*q), bh=Math.round(ch*q);
+  if(canvas.width!==bw||canvas.height!==bh){canvas.width=bw; canvas.height=bh} // assigning width/height reallocates the bitmap even when the value is the same
+  ctx.setTransform(k,0,0,k,ox*q,oy*q);
   try{$('#grain').style.setProperty('--grain-w',Math.round(W*s)+'px')}catch(_){}
   document.querySelectorAll('.card:not(.shop)').forEach(c=>{c.style.zoom=TOUCH?Math.max(.82,Math.min(1,s+.15)):Math.max(1,Math.min(1.9,s))});
 }
-fit(); window.addEventListener('resize',fit); window.addEventListener('orientationchange',()=>setTimeout(fit,150));
-if(window.ResizeObserver)new ResizeObserver(()=>fit()).observe(canvas);
+fit();
+// resize, orientationchange and the ResizeObserver often fire together; measure once per frame instead of once per event
+let fitQueued=false;
+function scheduleFit(){if(fitQueued)return;fitQueued=true;requestAnimationFrame(()=>{fitQueued=false;fit()})}
+window.addEventListener('resize',scheduleFit); window.addEventListener('orientationchange',()=>setTimeout(scheduleFit,150));
+if(window.ResizeObserver)new ResizeObserver(scheduleFit).observe(canvas);
+// a lost 2D context (GPU reset, memory pressure) comes back blank with default state: re-apply the transform
+canvas.addEventListener('contextlost',e=>e.preventDefault());
+canvas.addEventListener('contextrestored',()=>fit());
 
 let runTotal=0, runRound=1;
 let state='menu', G=null, down=false, keyHold=false, last=0;
@@ -384,17 +403,24 @@ function newGame(demo=false){
 G=newGame(true);
 
 /* ---------- input ---------- */
-function setMouse(e){
+const ptr={x:0,y:0,dirty:false};
+function setMouse(e){ptr.x=e.clientX;ptr.y=e.clientY;ptr.dirty=true}
+function resolveMouse(){ // at most one layout read per frame, however many pointermove events arrived
+  if(!ptr.dirty)return; ptr.dirty=false;
   const r=canvas.getBoundingClientRect();
-  if(document.documentElement.classList.contains('rot')&&window.matchMedia&&matchMedia(PORTRAIT_Q).matches){
+  if(rotApplied&&portraitMQ&&portraitMQ.matches){
     const cx=r.left+r.width/2, cy=r.top+r.height/2, w=canvas.offsetWidth, h=canvas.offsetHeight;
-    mouse.x=((cy-e.clientY)+w/2-VIEW.ox)/VIEW.s; mouse.y=((e.clientX-cx)+h/2-VIEW.oy)/VIEW.s; return;
+    mouse.x=((cy-ptr.y)+w/2-VIEW.ox)/VIEW.s; mouse.y=((ptr.x-cx)+h/2-VIEW.oy)/VIEW.s; return;
   }
-  mouse.x=(e.clientX-r.left-VIEW.ox)/VIEW.s;mouse.y=(e.clientY-r.top-VIEW.oy)/VIEW.s}
-canvas.addEventListener('pointerdown',e=>{initAudio();setMouse(e);down=true;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
-canvas.addEventListener('pointermove',setMouse);
+  mouse.x=(ptr.x-r.left-VIEW.ox)/VIEW.s;mouse.y=(ptr.y-r.top-VIEW.oy)/VIEW.s}
+canvas.addEventListener('pointerdown',e=>{initAudio();setMouse(e);resolveMouse();down=true;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
+canvas.addEventListener('pointermove',setMouse,{passive:true});
 ['pointerup','pointercancel'].forEach(t=>canvas.addEventListener(t,()=>down=false));
 window.addEventListener('blur',()=>{down=false;keyHold=false});
+window.addEventListener('visibilitychange',()=>{
+  if(document.hidden){down=false;keyHold=false;if(ac&&ac.state==='running')ac.suspend().catch(()=>{})}
+  else if(ac&&ac.state==='suspended')ac.resume().catch(()=>{});
+});
 window.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&$('#shopCard').style.display!=='none'){showShop(false);return}
   if(e.code==='Space'){e.preventDefault();keyHold=true;initAudio()}
@@ -905,23 +931,34 @@ function render(){
   if(state==='over'&&G.end.t<1.1)sticker(G.end.title,W/2,H/2-120,38,YE,-.04);
 }
 function physics(dt){
-  for(const c of G.crumbs){c.vy+=500*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.life-=dt*.9}
-  G.crumbs=G.crumbs.filter(c=>c.life>0&&c.y<H+20);
-  for(const h of G.hearts){h.x+=h.vx*dt;h.y+=h.vy*dt;h.life-=dt}
-  G.hearts=G.hearts.filter(h=>h.life>0);
+  let j=0; const cr=G.crumbs;
+  for(let i=0;i<cr.length;i++){const c=cr[i];c.vy+=500*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.life-=dt*.9;if(c.life>0&&c.y<H+20)cr[j++]=c}
+  cr.length=j;
+  const hs=G.hearts; j=0;
+  for(let i=0;i<hs.length;i++){const h=hs[i];h.x+=h.vx*dt;h.y+=h.vy*dt;h.life-=dt;if(h.life>0)hs[j++]=h}
+  hs.length=j;
 }
 // A full-screen overlay (portrait phones) hides the stage completely, so drawing it would be wasted work.
 const overlayEl=$('#overlay'), portraitMQ=window.matchMedia?matchMedia(PORTRAIT_Q):null;
 const stageHidden=()=>state!=='play'&&!!portraitMQ&&portraitMQ.matches&&overlayEl.classList.contains('show');
 let menuTick=0;
+let loopErrors=0;
 function loop(ts){
+  requestAnimationFrame(loop); // first, so an exception below can never leave the game frozen
   // the idle menu demo only needs 30fps: skip every other frame without losing time (dt accumulates)
-  if(state==='menu'&&(menuTick^=1)){requestAnimationFrame(loop);return}
+  if(state==='menu'&&(menuTick^=1))return;
   const dt=Math.min(.05,(ts-last)/1000||0); last=ts;
-  if(state==='play')update(dt);
-  else if(state==='menu'){G.t+=dt;stepAI(dt);geom();G.alpha+=(G.th-G.alpha)*Math.min(1,dt*3)}
-  else if(state==='over'){G.end.t+=dt;if(!G.end.shown&&G.end.t>1.2)showResult()}
-  physics(dt); if(!stageHidden())render(); requestAnimationFrame(loop);
+  try{
+    resolveMouse();
+    if(state==='play')update(dt);
+    else if(state==='menu'){G.t+=dt;stepAI(dt);geom();G.alpha+=(G.th-G.alpha)*Math.min(1,dt*3)}
+    else if(state==='over'){G.end.t+=dt;if(!G.end.shown&&G.end.t>1.2)showResult()}
+    physics(dt); if(!stageHidden())render();
+  }catch(e){
+    // a throw between save() and restore() leaves the state stack unbalanced; reassigning the width resets the context, then fit() restores the transform
+    canvas.width=canvas.width; fit();
+    if(loopErrors++<5)console.error('[frame]',e);
+  }
 }
 requestAnimationFrame(loop);
 </script>
