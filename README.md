@@ -2,7 +2,7 @@
 
 AI와 빼빼로 한 개를 마주 먹는 고난이도 각도 맞추기 게임. 입술이 닿기 전에 최대한 많이 먹고, 점수(mm)로 경쟁한다.
 
-- 플레이: https://snap-or-kiss.github.io/frontend/ (짧은 주소 https://snap-or-kiss.github.io/ 는 여기로 넘어간다)
+- 플레이: https://snap-or-kiss.github.io/ (게임 파일은 이 저장소 `main`의 `index.html`이고, 그 주소를 서빙하는 `snap-or-kiss.github.io` 저장소가 10분마다 복사해 간다. 바로 반영하려면 그 저장소 Actions 탭에서 "Sync game from frontend"를 Run workflow)
 - 저장소: https://github.com/snap-or-kiss/frontend (이 저장소). 백엔드는 `snap-or-kiss/backend`로 따로 만든다.
 - 프런트엔드: 의존성 없는 단일 `index.html` (Canvas 2D + 바닐라 JS). 빌드 없음. 배포용 저장소는 따로 없다. 이 저장소의 `main`에 푸시하면 GitHub Pages가 바로 배포한다.
 - 백엔드: 아직 없음. 친구가 개발한다. 이 문서의 [백엔드 명세](#b-백엔드)와 [CONTRACTS.md](CONTRACTS.md)가 합의 기준이다.
@@ -130,8 +130,8 @@ node scripts/sim.js           # 헤드리스 시뮬레이션 검사
 | `deviceId` | string(UUID) | 필수 |
 | `name` | string | 필수. 앞뒤 공백을 자르고 1~12자 |
 | `outcome` | `"snap"` \| `"break"` | 필수. `aisnap`, `kiss`는 0점이라 제출하지 않는다 |
-| `eatenMm` | number | 필수. 0 초과 150 이하 |
-| `remainingMm` | number | 필수. 0 이상 150 이하 |
+| `eatenMm` | number | 필수. 0 초과 180 이하 |
+| `remainingMm` | number | 필수. 0 이상 180 이하 |
 | `durationMs` | integer | 필수. 판이 시작해서 끝날 때까지 |
 | `score` | number | 필수. 서버가 다시 계산해서 다르면 거부 |
 | `clientVersion` | string | 선택. 문제 추적용 |
@@ -141,8 +141,8 @@ node scripts/sim.js           # 헤드리스 시뮬레이션 검사
 | ID | 기능 | 명세 | 상태 |
 |---|---|---|---|
 | BE-10 | 점수 재계산 | `snap`: `score = eatenMm × (remainingMm ≤ 20 ? 1.15 : 1)`. `break`: `score = eatenMm × 0.5`. 소수 첫째 자리 반올림. 요청 `score`와 0.1 넘게 다르면 `400`. | 🟡 |
-| BE-11 | 범위 검사 | `score` ≤ 172.5(`snap`), ≤ 75(`break`). `eatenMm + remainingMm` ≤ 150. | 🟡 |
-| BE-12 | 속도 검사 | 먹을 수 있는 최대 속도는 23.8px/s(= 14px/s × 1.7)다. `eatenMm / 0.2273`px를 그 속도로 먹는 데 걸리는 시간의 90% 미만인 `durationMs`는 거부한다. | 🟡 |
+| BE-11 | 범위 검사 | `score` ≤ 207(`snap`, = 180×1.15), ≤ 90(`break`). `eatenMm + remainingMm` ≤ 180(반올림 여유 0.1). 빼빼로 길이가 바뀌면 `STICK_MM`에 맞춰 같이 바꾼다. | 🟡 |
+| BE-12 | 속도 검사 | 먹을 수 있는 최대 속도는 약 5.409mm/s다(14px/s × 1.7 × 150/660. 길이를 바꿔도 mm/s로는 같다). `eatenMm`을 그 속도로 먹는 데 걸리는 시간의 90% 미만인 `durationMs`는 거부한다. | 🟡 |
 | BE-13 | 제출 제한 | 같은 `deviceId`는 10초에 1회, 같은 IP는 분당 60회. 넘으면 `429`와 `Retry-After`. | 🟡 |
 | BE-14 | 닉네임 | 1~12자, 제어 문자 거부. 금칙어 목록은 설정 파일로 두고 걸리면 `400`. | 🟡 |
 | BE-15 | 순위 정책 | 점수 내림차순, 같으면 먼저 제출한 순. 한 `deviceId`는 최고 기록 하나만 순위에 오른다. | 🟡 |
